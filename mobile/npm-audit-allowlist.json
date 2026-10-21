@@ -1,0 +1,75 @@
+{
+  "_doc": "Advisories `make mobile-audit` (scripts/npm-audit.js) tolerates. Only for findings with NO fixed release. Every entry needs a reason and a review_by date: the gate FAILS once review_by has passed (re-evaluate, then renew with a new reason or delete) and FAILS if npm audit no longer reports the advisory (upstream fixed it — delete the entry). Lower severities are never gated.",
+  "allow": [
+    {
+      "id": "GHSA-w3rx-r6r6-pgpr",
+      "package": "image-size",
+      "reason": "metro's build-time asset-dimension parser (ICNS infinite loop). Only runs over images committed to this repo at bundle time; never shipped to devices or the backend. Every published version through 2.0.2 is flagged, so no override can clear it; metro pins ^1.0.2.",
+      "added": "2026-09-05",
+      "review_by": "2026-12-05"
+    },
+    {
+      "id": "GHSA-5p2g-fcmc-qvqq",
+      "package": "image-size",
+      "reason": "Same package and exposure as GHSA-w3rx-r6r6-pgpr (JXL/HEIF infinite loops).",
+      "added": "2026-09-05",
+      "review_by": "2026-12-05"
+    },
+    {
+      "id": "GHSA-w2rr-34g9-rvrj",
+      "package": "@xmldom/xmldom",
+      "reason": "Build-time-only Expo tooling dep — plist parsing during prebuild/config (expo-updates -> @expo/plist, and expo -> config-plugins -> xcode -> simple-plist -> plist). Never bundled into the app on user devices or the backend. All 0.8.x are vulnerable and the parents pin ^0.8, so the only fix is a major 0.9+/1.x override that risks breaking Expo's config tooling. AGGRESSIVE review_by: re-triage in ~2 weeks (expect an Expo transitive bump to clear it).",
+      "added": "2026-09-21",
+      "review_by": "2026-10-05"
+    },
+    {
+      "id": "GHSA-4w3w-2rp5-g8jm",
+      "package": "@xmldom/xmldom",
+      "reason": "Same package and exposure as GHSA-w2rr-34g9-rvrj (build-time-only Expo plist tooling).",
+      "added": "2026-09-21",
+      "review_by": "2026-10-05"
+    },
+    {
+      "id": "GHSA-c7q8-3ch8-vqpv",
+      "package": "@xmldom/xmldom",
+      "reason": "Same package and exposure as GHSA-w2rr-34g9-rvrj (build-time-only Expo plist tooling).",
+      "added": "2026-09-21",
+      "review_by": "2026-10-05"
+    },
+    {
+      "id": "GHSA-27p8-2357-5qqv",
+      "package": "@xmldom/xmldom",
+      "reason": "Same package and exposure as GHSA-w2rr-34g9-rvrj (build-time-only Expo plist tooling).",
+      "added": "2026-09-21",
+      "review_by": "2026-10-05"
+    },
+    {
+      "id": "GHSA-8344-3jmq-59r6",
+      "package": "@xmldom/xmldom",
+      "reason": "Same package and exposure as GHSA-w2rr-34g9-rvrj (build-time-only Expo plist tooling).",
+      "added": "2026-09-21",
+      "review_by": "2026-10-05"
+    },
+    {
+      "id": "GHSA-x4fp-j954-r2f4",
+      "package": "@xmldom/xmldom",
+      "reason": "Same package and exposure as GHSA-w2rr-34g9-rvrj (build-time-only Expo plist tooling).",
+      "added": "2026-09-21",
+      "review_by": "2026-10-05"
+    },
+    {
+      "id": "GHSA-965w-775f-mr7g",
+      "package": "@xmldom/xmldom",
+      "reason": "Same package and exposure as GHSA-w2rr-34g9-rvrj (build-time-only Expo plist tooling).",
+      "added": "2026-09-21",
+      "review_by": "2026-10-05"
+    },
+    {
+      "id": "GHSA-93r5-fhx6-vmg9",
+      "package": "@xmldom/xmldom",
+      "reason": "Same package and exposure as GHSA-w2rr-34g9-rvrj (build-time-only Expo plist tooling).",
+      "added": "2026-09-21",
+      "review_by": "2026-10-05"
+    }
+  ]
+}

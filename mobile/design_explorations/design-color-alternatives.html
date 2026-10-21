@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Made It Home - Primary Color Alternatives</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 768px) {
+            .color-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .color-option {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .color-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-description {
+            color: #7F8C8D;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .psychology {
+            background: #F8F9FA;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .psychology h4 {
+            color: #2C3E50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .psychology p {
+            color: #7F8C8D;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .component-examples {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .card-example {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 230, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0); }
+        }
+
+        .warning-box {
+            background: #FFF5F5;
+            border: 2px solid #FFB3B3;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .warning-box h3 {
+            color: #E55555;
+            margin-bottom: 10px;
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, rgba(85, 239, 196, 0.1), rgba(85, 239, 196, 0.05));
+            border: 2px solid #55EFC4;
+            padding: 25px;
+            border-radius: 16px;
+            margin-top: 30px;
+        }
+
+        .recommendation h3 {
+            color: #0D9488;
+            margin-bottom: 15px;
+        }
+
+        /* Color Option 1 - Original Coral */
+        .option-1-primary { background: linear-gradient(135deg, #FF6B6B, #FF8E53); }
+        .option-1-secondary { background: linear-gradient(135deg, #4ECDC4, #44A3AA); }
+        .option-1-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        /* Color Option 2 - Trusty Blue */
+        .option-2-primary { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+        .option-2-secondary { background: linear-gradient(135deg, #4ECDC4, #44A3AA); }
+        .option-2-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        /* Color Option 3 - Safe Purple */
+        .option-3-primary { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+        .option-3-secondary { background: linear-gradient(135deg, #4ECDC4, #44A3AA); }
+        .option-3-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        /* Color Option 4 - Calm Teal (Monochromatic) */
+        .option-4-primary { background: linear-gradient(135deg, #14B8A6, #0D9488); }
+        .option-4-secondary { background: linear-gradient(135deg, #67E8F9, #22D3EE); }
+        .option-4-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        /* Color Option 5 - Fresh Green */
+        .option-5-primary { background: linear-gradient(135deg, #10B981, #059669); }
+        .option-5-secondary { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+        .option-5-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        /* Color Option 6 - Deep Ocean */
+        .option-6-primary { background: linear-gradient(135deg, #0891B2, #0E7490); }
+        .option-6-secondary { background: linear-gradient(135deg, #06B6D4, #0891B2); }
+        .option-6-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 24px;
+            border: 3px solid;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            background: white;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Primary Color Alternatives</h1>
+            <p style="font-size: 18px; margin-top: 10px;">Moving away from red to convey safety, not danger</p>
+        </div>
+
+        <div class="section">
+            <div class="warning-box">
+                <h3>⚠️ Current Issue with Coral Red (#FF6B6B)</h3>
+                <p style="color: #7F8C8D; line-height: 1.6;">
+                    Red and red-adjacent colors trigger danger/alert responses in the brain. For a safety app where we want users to feel <strong>protected and calm</strong>, not anxious, we should avoid red as the primary color. Red should be reserved only for actual emergencies.
+                </p>
+            </div>
+
+            <h2 style="text-align: center; color: #2C3E50; margin-bottom: 30px;">Alternative Primary Colors</h2>
+
+            <div class="color-grid">
+                <!-- Option 1 - Original for Reference -->
+                <div class="color-option">
+                    <div class="color-title" style="color: #FF6B6B;">
+                        ❌ Current: Coral Red
+                    </div>
+                    <div class="color-description">
+                        The current design - playful but potentially anxiety-inducing
+                    </div>
+                    <div class="psychology">
+                        <h4>Psychological Impact:</h4>
+                        <p>⚠️ Triggers urgency, danger, alert state<br>
+                        ⚠️ Can increase heart rate and stress<br>
+                        ⚠️ Contradicts "safe" messaging</p>
+                    </div>
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn option-1-primary">Check In Safe</button>
+                            <button class="btn option-1-secondary">View Friends</button>
+                        </div>
+                        <button class="btn option-1-danger" style="animation: pulse 2s infinite;">
+                            🚨 EMERGENCY
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Option 2 - Trusty Blue -->
+                <div class="color-option">
+                    <div class="color-title" style="color: #3B82F6;">
+                        💙 Trusty Blue
+                    </div>
+                    <div class="color-description">
+                        Classic choice for trust, stability, and reliability
+                    </div>
+                    <div class="psychology">
+                        <h4>Psychological Impact:</h4>
+                        <p>✅ Conveys trust and security<br>
+                        ✅ Calming and professional<br>
+                        ✅ Universal "safe" color</p>
+                    </div>
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn option-2-primary">Check In Safe</button>
+                            <button class="btn option-2-secondary">View Friends</button>
+                        </div>
+                        <button class="btn option-2-danger" style="animation: pulse 2s infinite;">
+                            🚨 EMERGENCY
+                        </button>
+                        <div class="card-example" style="border-color: #3B82F6;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: bold; color: #2C3E50;">Active Check-in</span>
+                                <span class="status-badge" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6; border: 2px solid #3B82F6;">
+                                    <span class="pulse-dot" style="background: #3B82F6;"></span>
+                                    Active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option 3 - Safe Purple -->
+                <div class="color-option">
+                    <div class="color-title" style="color: #8B5CF6;">
+                        💜 Safe Purple
+                    </div>
+                    <div class="color-description">
+                        Modern, calming, and gender-neutral
+                    </div>
+                    <div class="psychology">
+                        <h4>Psychological Impact:</h4>
+                        <p>✅ Calming and creative<br>
+                        ✅ Premium, modern feel<br>
+                        ✅ Balance of warm and cool</p>
+                    </div>
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn option-3-primary">Check In Safe</button>
+                            <button class="btn option-3-secondary">View Friends</button>
+                        </div>
+                        <button class="btn option-3-danger" style="animation: pulse 2s infinite;">
+                            🚨 EMERGENCY
+                        </button>
+                        <div class="card-example" style="border-color: #8B5CF6;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: bold; color: #2C3E50;">Active Check-in</span>
+                                <span class="status-badge" style="background: rgba(139, 92, 246, 0.1); color: #8B5CF6; border: 2px solid #8B5CF6;">
+                                    <span class="pulse-dot" style="background: #8B5CF6;"></span>
+                                    Active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option 4 - Calm Teal -->
+                <div class="color-option" style="border: 3px solid #14B8A6;">
+                    <div class="color-title" style="color: #14B8A6;">
+                        🌊 Calm Teal (Recommended)
+                    </div>
+                    <div class="color-description">
+                        Soothing, fresh, and naturally associated with safety
+                    </div>
+                    <div class="psychology">
+                        <h4>Psychological Impact:</h4>
+                        <p>✅ Naturally calming<br>
+                        ✅ Associated with healing/health<br>
+                        ✅ Fresh and approachable</p>
+                    </div>
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn option-4-primary">Check In Safe</button>
+                            <button class="btn option-4-secondary">View Friends</button>
+                        </div>
+                        <button class="btn option-4-danger" style="animation: pulse 2s infinite;">
+                            🚨 EMERGENCY
+                        </button>
+                        <div class="card-example" style="border-color: #14B8A6;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: bold; color: #2C3E50;">Active Check-in</span>
+                                <span class="status-badge" style="background: rgba(20, 184, 166, 0.1); color: #14B8A6; border: 2px solid #14B8A6;">
+                                    <span class="pulse-dot" style="background: #14B8A6;"></span>
+                                    Active
+                                </span>
+                            </div>
+                            <p style="color: #7F8C8D; margin: 10px 0 5px;">📍 Campus Library</p>
+                            <input type="text" class="input-field" style="border-color: #14B8A6;" placeholder="How are you feeling?">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option 5 - Fresh Green -->
+                <div class="color-option">
+                    <div class="color-title" style="color: #10B981;">
+                        💚 Fresh Green
+                    </div>
+                    <div class="color-description">
+                        Universal "safe" signal, positive and reassuring
+                    </div>
+                    <div class="psychology">
+                        <h4>Psychological Impact:</h4>
+                        <p>✅ Universal "go/safe" signal<br>
+                        ✅ Associated with growth/life<br>
+                        ✅ Positive and reassuring</p>
+                    </div>
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn option-5-primary">Check In Safe</button>
+                            <button class="btn option-5-secondary">View Friends</button>
+                        </div>
+                        <button class="btn option-5-danger" style="animation: pulse 2s infinite;">
+                            🚨 EMERGENCY
+                        </button>
+                        <div class="card-example" style="border-color: #10B981;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: bold; color: #2C3E50;">Active Check-in</span>
+                                <span class="status-badge" style="background: rgba(16, 185, 129, 0.1); color: #10B981; border: 2px solid #10B981;">
+                                    <span class="pulse-dot" style="background: #10B981;"></span>
+                                    Active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option 6 - Deep Ocean -->
+                <div class="color-option">
+                    <div class="color-title" style="color: #0891B2;">
+                        🌊 Deep Ocean
+                    </div>
+                    <div class="color-description">
+                        Deeper, more serious teal for added gravitas
+                    </div>
+                    <div class="psychology">
+                        <h4>Psychological Impact:</h4>
+                        <p>✅ Depth and stability<br>
+                        ✅ Professional trust<br>
+                        ✅ Protective feeling</p>
+                    </div>
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn option-6-primary">Check In Safe</button>
+                            <button class="btn option-6-secondary">View Friends</button>
+                        </div>
+                        <button class="btn option-6-danger" style="animation: pulse 2s infinite;">
+                            🚨 EMERGENCY
+                        </button>
+                        <div class="card-example" style="border-color: #0891B2;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: bold; color: #2C3E50;">Active Check-in</span>
+                                <span class="status-badge" style="background: rgba(8, 145, 178, 0.1); color: #0891B2; border: 2px solid #0891B2;">
+                                    <span class="pulse-dot" style="background: #0891B2;"></span>
+                                    Active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recommendation">
+                <h3>🎯 Recommendation: Calm Teal (#14B8A6)</h3>
+                <p style="color: #5D6D7E; line-height: 1.8; margin-bottom: 20px;">
+                    <strong>Why Teal works best for Made It Home:</strong>
+                </p>
+                <ul style="color: #5D6D7E; line-height: 2; padding-left: 20px;">
+                    <li>• <strong>Psychologically calming</strong> - reduces anxiety rather than triggering it</li>
+                    <li>• <strong>Fresh and modern</strong> - appeals to college-age users</li>
+                    <li>• <strong>Gender neutral</strong> - works for all users</li>
+                    <li>• <strong>Distinct from emergency yellow</strong> - clear visual hierarchy</li>
+                    <li>• <strong>Associated with health/healing</strong> - medical/safety connotations</li>
+                    <li>• <strong>Works with existing secondary color</strong> - teal family consistency</li>
+                </ul>
+
+                <div style="background: white; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h4 style="color: #2C3E50; margin-bottom: 15px;">Color Hierarchy with Teal Primary:</h4>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <div>
+                            <button class="btn option-4-primary" style="margin-bottom: 5px;">Primary Action</button>
+                            <p style="font-size: 12px; color: #7F8C8D; text-align: center;">Most actions</p>
+                        </div>
+                        <div>
+                            <button class="btn option-4-secondary" style="margin-bottom: 5px;">Secondary</button>
+                            <p style="font-size: 12px; color: #7F8C8D; text-align: center;">Alternative</p>
+                        </div>
+                        <div>
+                            <button class="btn" style="background: linear-gradient(135deg, #10B981, #059669); margin-bottom: 5px;">I'm Safe ✅</button>
+                            <p style="font-size: 12px; color: #7F8C8D; text-align: center;">Positive confirm</p>
+                        </div>
+                        <div>
+                            <button class="btn option-4-danger" style="animation: pulse 2s infinite; margin-bottom: 5px;">🚨 EMERGENCY</button>
+                            <p style="font-size: 12px; color: #7F8C8D; text-align: center;">Only for danger</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+{% extends "base_web.html" %}
+
+{% block title %}Login - Made It Home{% endblock title %}
+
+{% block body %}
+<!-- Minimal header (marketing lives only on the marketing-site repo,
+     owner decision 2026-09-23): logo links out to marketing, no Pricing
+     link, no Login button since this is already the login page. -->
+<nav class="nav-bar">
+    <div class="nav-content">
+        <a href="{{ marketing_origin }}" class="nav-logo">
+            <svg width="44" height="44" viewBox="0 0 1024 1024" fill="none">
+                <path d="M512 195 L175 450 L175 790 Q175 830 215 830 L809 830 Q849 830 849 790 L849 450 Z" fill="#14B8A6" stroke="#14B8A6" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="447,640 512,705 627,575" fill="none" stroke="white" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nav-logo-text">Made It Home</span>
+        </a>
+    </div>
+</nav>
+
+<div class="container" style="max-width: 600px; margin-top: 30px;">
+    <div class="text-center mb-lg">
+        <h1 style="font-size: 36px; font-weight: 700; color: var(--dark); margin-bottom: 12px;">
+            {% if inviter_name %}{{ inviter_name }} trusts you to be there for them{% else %}Log in or sign up{% endif %}
+        </h1>
+        {% if inviter_name %}
+        <p class="text-muted mt-sm" style="font-size: 15px;">
+            Made It Home is a safety app that alerts someone's Circle of Trust when they miss their scheduled check-in time
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Auth Card -->
+    <div class="card mb-lg" style="border: 2px solid var(--primary);">
+        <div class="text-center">
+            {% if inviter_name %}
+            <h3 style="font-size: 20px; font-weight: 600; color: var(--dark); margin-bottom: 20px;">
+                Accept the Invitation
+            </h3>
+            {% endif %}
+
+            {% include "fragments/auth_form.html" %}
+        </div>
+    </div>
+
+    {% if inviter_name %}
+    <!-- How it works -->
+    <div class="card mb-lg">
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 20px;">
+            How it works
+        </h2>
+
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="display: flex; align-items: center; gap: 12px; padding: 10px 0; color: var(--dark); font-size: 15px;">
+                <ion-icon name="chatbubble-outline" style="font-size: 20px; color: var(--primary);"></ion-icon>
+                You'll get a text if they miss a check-in
+            </li>
+            <li style="display: flex; align-items: center; gap: 12px; padding: 10px 0; color: var(--dark); font-size: 15px;">
+                <ion-icon name="call-outline" style="font-size: 20px; color: var(--primary);"></ion-icon>
+                That's your cue to check if they're okay
+            </li>
+            <li style="display: flex; align-items: center; gap: 12px; padding: 10px 0; color: var(--dark); font-size: 15px;">
+                <ion-icon name="checkmark-circle-outline" style="font-size: 20px; color: var(--primary);"></ion-icon>
+                No app needed - just SMS alerts
+            </li>
+        </ul>
+    </div>
+
+    <!-- FAQ -->
+    <div class="card mb-lg">
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 16px;">
+            FAQ
+        </h2>
+
+        <div style="margin-bottom: 16px;">
+            <h3 style="font-size: 15px; font-weight: 600; color: var(--dark); margin-bottom: 6px;">
+                How often will I get alerts?
+            </h3>
+            <p class="text-muted" style="font-size: 14px; margin: 0;">
+                Rarely. Most people only use this for dates, nights out, or traveling alone.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <h3 style="font-size: 15px; font-weight: 600; color: var(--dark); margin-bottom: 6px;">
+                What about my privacy?
+            </h3>
+            <p class="text-muted" style="font-size: 14px; margin: 0;">
+                Only your phone number is shared. You will only receive alerts if you accept {{ inviter_name }}'s invitation.
+            </p>
+        </div>
+
+        <div>
+            <h3 style="font-size: 15px; font-weight: 600; color: var(--dark); margin-bottom: 6px;">
+                Does it cost anything?
+            </h3>
+            <p class="text-muted" style="font-size: 14px; margin: 0;">
+                No. Being a Circle member is always free.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock body %}

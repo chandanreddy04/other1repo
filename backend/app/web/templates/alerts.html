@@ -1,0 +1,44 @@
+{% extends "base_web.html" %}
+
+{% block title %}Made It Home - Alerts{% endblock title %}
+
+{% block body %}
+{% set active_nav = 'alerts' %}
+{% include "fragments/nav_auth.html" %}
+
+<div class="container" style="margin-top: 40px;">
+    <h1 style="font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 30px;">
+        Alerts
+    </h1>
+
+    {% if rows|length > 0 %}
+        {% for row in rows %}
+        <a href="/alerts/{{ row.id }}"
+           class="card mb-md"
+           style="display: flex; align-items: center; justify-content: space-between;
+                  gap: 12px; flex-wrap: wrap; text-decoration: none; color: inherit;">
+            <div>
+                <div class="card-title">{{ row.type_label }}</div>
+                <div class="card-subtitle">
+                    {{ row.owner_first }}{% if row.sent_at_local %} &middot; {{ row.sent_at_local }}{% endif %}
+                </div>
+            </div>
+            <span class="badge {{ row.status_badge_class }}">{{ row.status_label }}</span>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="card">
+            <div class="empty-state">
+                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+                <div class="empty-title">No Alerts Yet</div>
+                <p class="empty-description">
+                    You'll see alerts here when someone in your<br>
+                    Circle of Trust needs help or misses a check-in.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock body %}

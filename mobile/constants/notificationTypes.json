@@ -1,0 +1,22 @@
+{
+  "_comment": "Single source of truth for push/local notification data `type` values — the contract between backend dispatch and mobile handling. Backend: tests/test_notification_types_contract.py asserts the `backend` list exactly matches the types emitted by notification_helpers.py + session_tasks.py. Mobile: services/notificationRouting.test.ts asserts every listed type has a routing entry. Add a type here FIRST when introducing a new notification, then wire both sides — drift becomes a test failure, not a silently dead handler (this file exists because the original handlers checked type names the backend never emitted).",
+  "backend": [
+    "account_holder_subscription_cancelled",
+    "account_holder_unsubscribed",
+    "alert_acknowledged",
+    "alert_triggered",
+    "all_clear",
+    "circle_alerted",
+    "circle_emptied",
+    "circle_emptied_mid_session",
+    "contact_left",
+    "contact_opted_out",
+    "contact_unreachable",
+    "data_deleted",
+    "group_plan_grace",
+    "session_expired",
+    "session_expiring",
+    "subscription_lapse"
+  ],
+  "local": ["session_reminder"]
+}

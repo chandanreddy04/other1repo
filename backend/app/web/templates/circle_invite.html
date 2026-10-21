@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ inviter_name|default("A friend") }} added you to their Circle of Trust — Made It Home</title>
+    {#
+        This page is where /c/{code} lands (GET /circles/{code}). Circle
+        invites are browser-only (owner decision 2026-09-23 — Circle
+        members use mobile web only, so there's no in-app accept screen for
+        iOS Universal Links / Android App Links to route into); this page
+        is the only place the invite is ever accepted. No app-install path
+        and no Smart App Banner: the app has nothing for a Circle member.
+
+        htmx is loaded only for the referral "Claim Free Month" button on
+        the just-accepted state (POST /htmx/referrals/claim-from-invite);
+        pinned with SRI like alert_view.html's maplibre (hash of the exact
+        dist/htmx.min.js file).
+    #}
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F8FAFB 0%, #E6F4F1 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #2C3E50;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        p { color: #5A6C7D; line-height: 1.5; margin-bottom: 20px; }
+        .stores {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .stores a {
+            display: inline-block;
+            background: #14B8A6;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .stores a:hover { background: #0D9488; }
+        .err h1 { color: #C0392B; }
+        .accept {
+            background: #14B8A6;
+            color: white;
+            border: none;
+            font-size: 17px;
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: 999px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .accept:hover { background: #0D9488; }
+        .fine { font-size: 12px; color: #8395A7; }
+        .guide {
+            text-align: left;
+            background: #F8FAFB;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .guide h2 { font-size: 15px; margin-bottom: 8px; }
+        .guide ul { padding-left: 18px; color: #5A6C7D; line-height: 1.5; font-size: 14px; }
+        .guide li { margin-bottom: 8px; }
+        .guide a { color: #0D9488; font-weight: 600; }
+        .referral-offer {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(20, 184, 166, 0.08);
+            border-radius: 12px;
+            text-align: left;
+        }
+        .referral-offer p:first-child { font-weight: 600; color: #2C3E50; margin-bottom: 8px; }
+        .referral-offer .btn-claim {
+            background: #14B8A6;
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 999px;
+            cursor: pointer;
+            width: auto;
+        }
+        .referral-offer .btn-claim:hover { background: #0D9488; }
+        /* The claim response (POST /htmx/referrals/claim-from-invite) swaps
+           into .referral-offer; it's a dashboard-styled fragment, so give
+           its classes just enough styling on this standalone page. */
+        .referral-offer .card, .referral-offer .text-center { text-align: center; }
+        .referral-offer .empty-icon { width: 40px; height: 40px; margin: 0 auto 8px; display: block; }
+        .referral-offer .card-title { font-size: 17px; margin-bottom: 4px; }
+        .referral-offer .alert { padding: 4px 0; color: #2C3E50; }
+        .referral-offer .alert-error { color: #C0392B; }
+        .referral-offer .mt-lg { margin-top: 12px; }
+        .referral-offer .btn { color: #0D9488; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="card{% if invalid_code %} err{% endif %}">
+        {% if invalid_code %}
+            <h1>This invite link isn't valid</h1>
+            <p>The Circle of Trust link you tapped is expired or was revoked. Ask the person who shared it to send a fresh one.</p>
+            <div class="stores">
+                <a href="{{ marketing_origin }}">About Made It Home</a>
+            </div>
+        {% elif is_self %}
+            <h1>This is your own invite link</h1>
+            <p>Share it with the people you'd like in your Circle of Trust — they can accept right here on the web, no app needed.</p>
+        {% elif member_status == 'active' %}
+            <h1>{% if just_accepted %}You're in!{% else %}You're already in {{ inviter_name }}'s Circle{% endif %}</h1>
+            <p>You're in {{ inviter_name }}'s Circle of Trust. If they miss a check-in or press SOS, we'll text you at this number — no app needed.</p>
+            {% if just_accepted and referral_code %}
+            <div class="referral-offer">
+                <p>Get a free month!</p>
+                <p>{{ inviter_name }} wants to give you 30 days of Made It Home free.</p>
+                <button hx-post="/htmx/referrals/claim-from-invite"
+                        hx-target="closest .referral-offer"
+                        hx-swap="innerHTML"
+                        hx-vals='{{ {"referral_code": referral_code}|tojson }}'
+                        class="btn-claim">
+                    Claim Free Month
+                </button>
+            </div>
+            {% endif %}
+            <div class="guide">
+                <h2>One more step: make sure our alerts ring through</h2>
+                <p><a href="/made-it-home.vcf">Save the Made It Home contact</a>, then:</p>
+                <ul>
+                    <li><strong>iPhone:</strong> Contacts → Made It Home Alerts → Edit → <em>Text Tone</em> → turn on <strong>Emergency Bypass</strong> (this lets texts through Do&nbsp;Not&nbsp;Disturb — Favorites alone only covers calls).</li>
+                    <li><strong>Android:</strong> star the contact, then Settings → Do&nbsp;Not&nbsp;Disturb → People → Messages → allow <strong>Starred contacts</strong>.</li>
+                </ul>
+            </div>
+        {% elif logged_in and member_status == 'pending' %}
+            <h1>{{ inviter_name }} wants you in their Circle</h1>
+            <p>If {{ inviter_name }} misses a check-in or presses SOS, we'll text you so you can help. You'll only ever get texts about {{ inviter_name }}'s safety — reply STOP anytime.</p>
+            <form method="post" action="/circles/{{ invite_code }}/accept">
+                <button type="submit" class="accept">Yes, I'll join their Circle</button>
+            </form>
+            <p class="fine">Accepting means you agree to receive safety alert texts about {{ inviter_name }} at your number.</p>
+        {% elif logged_in %}
+            <h1>No invitation found for your number</h1>
+            <p>{{ inviter_name }}'s invite was sent to a different phone number than the one you signed in with. Ask them to add the number you use, then tap the link again.</p>
+        {% else %}
+            <h1>{{ inviter_name }} wants you in their Circle</h1>
+            <p>Made It Home lets people check in when they're out. Join {{ inviter_name }}'s Circle of Trust and you'll be texted if they miss a check-in, so you can help. <strong>No app required</strong> — verify your phone number and accept right here.</p>
+            <div class="stores">
+                <a href="/login?next=/circles/{{ invite_code }}">Accept on the web</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

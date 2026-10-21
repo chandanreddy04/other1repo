@@ -1,0 +1,33 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# AWS RDS root CA bundle (see backend/Dockerfile for rationale).
+RUN curl -fsSL -o /etc/ssl/certs/rds-global-bundle.pem \
+    https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Build-time commit SHA → Bugsnag app_version and the /health "version" field
+# (deploy-aws.yml passes --build-arg GIT_SHA=<commit>).
+ARG GIT_SHA=dev
+ENV GIT_SHA=$GIT_SHA
+
+# Run as a non-root user (least privilege), matching the web image.
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Default CMD is a single tick (worker_tick.py) — used for the migrate one-off
+# and manual/rollback runs. The long-lived worker ECS service overrides the
+# command to `worker_loop.py`, which ticks ~every 60s in-process. The old
+# cron-based image is gone: cron wouldn't have inherited the injected env vars.
+CMD ["python", "worker_tick.py"]

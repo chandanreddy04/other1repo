@@ -1,0 +1,55 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ view.name_plural|title }} — Admin{% endblock title %}
+
+{% block admin_content %}
+<div class="admin-breadcrumb">
+    <a href="/admin/">Admin</a> / {{ view.name_plural|title }}
+</div>
+
+<div class="admin-page-header">
+    <h1 class="admin-page-title">{{ view.name_plural|title }}</h1>
+    {% if not view.read_only %}
+    <a href="/admin/{{ view.name_plural }}/new" class="admin-btn admin-btn-primary">
+        <ion-icon name="add-outline"></ion-icon> New {{ view.name|title }}
+    </a>
+    {% endif %}
+</div>
+
+<!-- Search & Filters -->
+<div class="admin-toolbar">
+    {% set has_searchable = view.columns|selectattr('searchable')|list|length > 0 %}
+    {% if has_searchable %}
+    <div class="admin-search">
+        <input type="text"
+               placeholder="Search..."
+               value="{{ search }}"
+               name="search"
+               hx-get="/admin/{{ view.name_plural }}/htmx/table"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#table-container"
+               hx-include="[name^='filter_']"
+        >
+    </div>
+    {% endif %}
+    {% for f in view.filters %}
+    <div class="admin-filter">
+        <select name="filter_{{ f.key }}"
+                hx-get="/admin/{{ view.name_plural }}/htmx/table"
+                hx-trigger="change"
+                hx-target="#table-container"
+                hx-include="[name='search'], [name^='filter_']"
+        >
+            <option value="">All {{ f.label }}</option>
+            {% for val, display in f.choices %}
+            <option value="{{ val }}" {% if filter_values.get(f.key) == val %}selected{% endif %}>{{ display }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endfor %}
+</div>
+
+<div id="table-container">
+    {% include "admin/fragments/table_body.html" %}
+</div>
+{% endblock admin_content %}

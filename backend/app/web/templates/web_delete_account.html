@@ -1,0 +1,130 @@
+{% extends "base_web.html" %}
+
+{% block title %}Delete Account - Made It Home{% endblock title %}
+
+{% block body %}
+<div class="container" style="max-width: 560px; margin-top: 40px; margin-bottom: 40px;">
+    <div class="text-center mb-lg">
+        <h1 style="font-size: 32px; font-weight: 700; color: var(--dark); margin-bottom: 8px;">
+            Delete your account
+        </h1>
+        <p class="text-muted" style="font-size: 15px;">
+            Made It Home
+        </p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger mb-md" style="background: var(--danger); color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="card" style="background: white; padding: 28px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);">
+
+    {# ----- Stage 1: phone form ----- #}
+    {% if stage == "phone" %}
+        <p style="color: var(--dark); margin-bottom: 16px; line-height: 1.5;">
+            We'll text you a 6-digit code to confirm you own this number.
+        </p>
+        <form method="POST" action="/account/delete/codes" novalidate>
+            <div class="form-group">
+                <label class="form-label" for="phone-input">Phone number</label>
+                <input type="tel"
+                       id="phone-input"
+                       name="phone_number"
+                       class="form-input"
+                       placeholder="(555) 123-4567"
+                       value="{{ phone_value|default('') }}"
+                       required
+                       autofocus>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+                Send code
+            </button>
+        </form>
+
+    {# ----- Stage 2: OTP form ----- #}
+    {% elif stage == "otp" %}
+        <p style="color: var(--dark); margin-bottom: 16px; line-height: 1.5;">
+            Enter the code we just texted to <strong>{{ display_phone }}</strong>.
+        </p>
+        <form method="POST" action="/account/delete/verifications" novalidate>
+            <input type="hidden" name="phone_number" value="{{ phone_e164 }}">
+            <div class="form-group">
+                <label class="form-label" for="otp-input">6-digit code</label>
+                <input type="text"
+                       id="otp-input"
+                       name="otp_code"
+                       class="form-input"
+                       placeholder="000000"
+                       inputmode="numeric"
+                       autocomplete="one-time-code"
+                       maxlength="6"
+                       pattern="[0-9]{6}"
+                       required
+                       autofocus>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+                Verify
+            </button>
+        </form>
+        <div style="margin-top: 12px; text-align: center;">
+            <a href="/account/delete" class="btn btn-link btn-block">
+                Use a different number
+            </a>
+        </div>
+
+    {# ----- Stage 3: confirmation + typed gate ----- #}
+    {% elif stage == "confirm" %}
+        <p style="color: var(--dark); margin-bottom: 12px; line-height: 1.5;">
+            {% if full_name %}{{ full_name|e }}, your{% else %}Your{% endif %} account will be permanently deleted.
+        </p>
+        <ul style="color: var(--dark); margin: 12px 0 18px 18px; line-height: 1.6;">
+            <li>Your photos, sessions, alerts, and Circle of Trust will be deleted within {{ grace_days }} days.</li>
+            <li>Any active subscription will be cancelled at the end of its paid period (no refund).</li>
+            <li>You have {{ grace_days }} days to sign back into the mobile app if you change your mind.</li>
+        </ul>
+        <form method="POST" action="/account/delete/confirmations" novalidate>
+            <div class="form-group">
+                <label class="form-label" for="confirm-phrase">
+                    Type <strong style="color: var(--danger)">delete</strong> below to confirm
+                </label>
+                <input type="text"
+                       id="confirm-phrase"
+                       name="confirm_phrase"
+                       class="form-input"
+                       autocapitalize="none"
+                       autocorrect="off"
+                       autocomplete="off"
+                       required
+                       autofocus>
+            </div>
+            <button type="submit" class="btn btn-block" style="background: var(--danger); color: white;">
+                Delete my account
+            </button>
+        </form>
+
+    {# ----- Stage 4: success ----- #}
+    {% elif stage == "success" %}
+        <div style="text-align: center;">
+            <ion-icon name="checkmark-circle" style="font-size: 56px; color: var(--primary);"></ion-icon>
+            <h2 style="font-size: 22px; color: var(--dark); margin: 12px 0;">
+                Account deletion scheduled
+            </h2>
+            <p style="color: var(--dark); line-height: 1.6;">
+                {% if scheduled_purge_at %}
+                Your account will be permanently deleted on
+                <strong>{{ scheduled_purge_at.strftime('%B %-d, %Y') }}</strong>.
+                {% else %}
+                Your account has been deleted.
+                {% endif %}
+            </p>
+            <p class="text-muted" style="font-size: 14px; margin-top: 16px;">
+                Sign back into the mobile app within {{ grace_days|default(30) }} days to restore your account.
+            </p>
+        </div>
+    {% endif %}
+
+    </div>
+</div>
+{% endblock body %}

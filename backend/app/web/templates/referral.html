@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Made It Home - Free Month</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F8FAFB 0%, #E6F4F1 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2C3E50; margin-bottom: 10px; font-size: 28px; }
+        .subtitle { color: #7F8C8D; margin-bottom: 30px; font-size: 16px; }
+        .referrer-card {
+            background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .referrer-name { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
+        .referrer-label { opacity: 0.9; font-size: 14px; }
+        .benefits {
+            margin-bottom: 30px;
+            padding: 0;
+            list-style: none;
+        }
+        .benefits li {
+            padding: 10px 0;
+            color: #2C3E50;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .benefits li::before {
+            content: "\2713";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: rgba(20, 184, 166, 0.1);
+            color: #14B8A6;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .form-step { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #2C3E50; font-weight: 500; }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus { outline: none; border-color: #14B8A6; }
+        button {
+            background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 100px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.35);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(20, 184, 166, 0.45); }
+        button:active { transform: scale(0.95); }
+        button:disabled, button.htmx-request {
+            background: #ECF0F1; color: #7F8C8D; cursor: not-allowed; transform: none; box-shadow: none;
+        }
+        .btn-secondary {
+            background: #ECF0F1;
+            color: #2C3E50;
+            box-shadow: none;
+        }
+        .btn-secondary:hover { background: #dce1e3; box-shadow: none; transform: none; }
+        .btn-sm { padding: 10px 20px; font-size: 14px; }
+        .alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .alert-error { background: rgba(239, 68, 68, 0.1); color: #991B1B; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .text-center { text-align: center; }
+        .text-muted { color: #7F8C8D; font-size: 14px; }
+        .success-icon {
+            width: 80px; height: 80px; margin: 0 auto 20px; background: #14B8A6;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            animation: scaleIn 0.3s ease-out;
+        }
+        @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+        .success-icon svg { width: 40px; height: 40px; stroke: white; stroke-width: 3; }
+        .fade-in { animation: slideIn 0.3s ease-out; }
+        .mt-md { margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if invalid_code %}
+            <div class="text-center">
+                <h1>Invalid Link</h1>
+                <p class="subtitle">This referral link is no longer valid.</p>
+                <a href="{{ marketing_origin }}" style="color: #14B8A6; text-decoration: none; font-weight: 600;">Go to Made It Home &rarr;</a>
+            </div>
+        {% else %}
+            <h1>Stay Safe with Made It Home</h1>
+            <p class="subtitle">{{ referrer_name }} is giving you a free month</p>
+
+            <div class="referrer-card">
+                <div class="referrer-name">30 Days Free</div>
+                <div class="referrer-label">Personal safety, on the house</div>
+            </div>
+
+            <ul class="benefits">
+                <li>Set check-in times when you're out</li>
+                <li>Auto-alert your Circle if you miss your check-in</li>
+                <li>Share your information only with people you trust</li>
+            </ul>
+
+            <div id="auth-flow">
+                {% include "fragments/referral_auth_form.html" %}
+            </div>
+
+            <p class="text-center text-muted" style="margin-top: 30px;">
+                Made It Home keeps you safe by alerting your Circle if you miss your check-in
+            </p>
+        {% endif %}
+    </div>
+</body>
+</html>

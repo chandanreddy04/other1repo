@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Made It Home - Refined Color Options</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 768px) {
+            .color-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .color-option {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .color-option.recommended {
+            border: 3px solid;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { border-color: #14B8A6; }
+            50% { border-color: #0D9488; }
+        }
+
+        .color-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-description {
+            color: #7F8C8D;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .palette-display {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .color-swatch {
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .component-examples {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .card-example {
+            background: white;
+            border: 1px solid;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 230, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0); }
+        }
+
+        /* Trusty Blue Gradients */
+        .blue-primary { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+        .blue-secondary { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+        .blue-success { background: linear-gradient(135deg, #10B981, #059669); }
+        .blue-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        /* Purple Gradients */
+        .purple-primary { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+        .purple-secondary { background: linear-gradient(135deg, #EC4899, #DB2777); }
+        .purple-success { background: linear-gradient(135deg, #10B981, #059669); }
+        .purple-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        /* Teal Gradients - FIXED */
+        .teal-primary { background: linear-gradient(135deg, #14B8A6, #0D9488); }
+        .teal-secondary { background: linear-gradient(135deg, #A78BFA, #8B5CF6); } /* Changed to purple */
+        .teal-success { background: linear-gradient(135deg, #3B82F6, #2563EB); } /* Changed to blue */
+        .teal-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 24px;
+            border: 3px solid;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            background: white;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .comparison-section {
+            background: #F8F9FA;
+            padding: 25px;
+            border-radius: 16px;
+            margin-top: 30px;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .check-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Refined Color Options with Gradients</h1>
+            <p style="font-size: 18px; margin-top: 10px;">Fixed color issues & added gradient variations</p>
+        </div>
+
+        <div class="section">
+            <h2 style="text-align: center; color: #2C3E50; margin-bottom: 30px;">Top 3 Options - Refined</h2>
+
+            <div class="color-grid">
+                <!-- Trusty Blue with Gradients -->
+                <div class="color-option">
+                    <div class="color-title" style="background: linear-gradient(135deg, #3B82F6, #2563EB); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        💙 Trusty Blue
+                    </div>
+                    <div class="color-description">
+                        Classic trust with modern gradients
+                    </div>
+
+                    <div class="palette-display">
+                        <div class="color-swatch blue-primary">Primary</div>
+                        <div class="color-swatch blue-secondary">Secondary</div>
+                        <div class="color-swatch blue-success">Success</div>
+                        <div class="color-swatch blue-danger">Emergency</div>
+                    </div>
+
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn blue-primary">Check In 📍</button>
+                            <button class="btn blue-secondary">Friends</button>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn blue-success">I'm Safe ✅</button>
+                            <button class="btn blue-danger" style="animation: pulse 2s infinite;">
+                                🚨 EMERGENCY
+                            </button>
+                        </div>
+
+                        <div class="card-example" style="border-color: rgba(59, 130, 246, 0.3);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <span style="font-weight: bold; color: #2C3E50;">Active Check-in</span>
+                                <span class="status-badge" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1)); color: #2563EB; border: 2px solid #3B82F6;">
+                                    <span class="pulse-dot" style="background: #3B82F6;"></span>
+                                    Active
+                                </span>
+                            </div>
+                            <p style="color: #7F8C8D; margin-bottom: 10px;">📍 Campus Library • 2h 30m left</p>
+                            <input type="text" class="input-field" style="border-color: #3B82F6;" placeholder="Feeling safe? Let us know...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Safe Purple with Gradients -->
+                <div class="color-option">
+                    <div class="color-title" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        💜 Safe Purple
+                    </div>
+                    <div class="color-description">
+                        Modern & calming with pink accents
+                    </div>
+
+                    <div class="palette-display">
+                        <div class="color-swatch purple-primary">Primary</div>
+                        <div class="color-swatch purple-secondary">Secondary</div>
+                        <div class="color-swatch purple-success">Success</div>
+                        <div class="color-swatch purple-danger">Emergency</div>
+                    </div>
+
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn purple-primary">Check In 📍</button>
+                            <button class="btn purple-secondary">Friends</button>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn purple-success">I'm Safe ✅</button>
+                            <button class="btn purple-danger" style="animation: pulse 2s infinite;">
+                                🚨 EMERGENCY
+                            </button>
+                        </div>
+
+                        <div class="card-example" style="border-color: rgba(139, 92, 246, 0.3);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <span style="font-weight: bold; color: #2C3E50;">Active Check-in</span>
+                                <span class="status-badge" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); color: #7C3AED; border: 2px solid #8B5CF6;">
+                                    <span class="pulse-dot" style="background: #8B5CF6;"></span>
+                                    Active
+                                </span>
+                            </div>
+                            <p style="color: #7F8C8D; margin-bottom: 10px;">📍 Campus Library • 2h 30m left</p>
+                            <input type="text" class="input-field" style="border-color: #8B5CF6;" placeholder="Feeling safe? Let us know...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calm Teal - FIXED -->
+                <div class="color-option recommended">
+                    <div class="color-title" style="background: linear-gradient(135deg, #14B8A6, #0D9488); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        🌊 Calm Teal (Fixed)
+                    </div>
+                    <div class="color-description">
+                        Soothing primary with purple secondary & blue success
+                    </div>
+
+                    <div class="palette-display">
+                        <div class="color-swatch teal-primary">Primary</div>
+                        <div class="color-swatch teal-secondary">Secondary</div>
+                        <div class="color-swatch teal-success">Success</div>
+                        <div class="color-swatch teal-danger">Emergency</div>
+                    </div>
+
+                    <div class="component-examples">
+                        <div class="btn-row">
+                            <button class="btn teal-primary">Check In 📍</button>
+                            <button class="btn teal-secondary">Friends</button>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn teal-success">I'm Safe ✅</button>
+                            <button class="btn teal-danger" style="animation: pulse 2s infinite;">
+                                🚨 EMERGENCY
+                            </button>
+                        </div>
+
+                        <div class="card-example" style="border-color: rgba(20, 184, 166, 0.3);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <span style="font-weight: bold; color: #2C3E50;">Active Check-in</span>
+                                <span class="status-badge" style="background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(20, 184, 166, 0.1)); color: #0D9488; border: 2px solid #14B8A6;">
+                                    <span class="pulse-dot" style="background: #14B8A6;"></span>
+                                    Active
+                                </span>
+                            </div>
+                            <p style="color: #7F8C8D; margin-bottom: 10px;">📍 Campus Library • 2h 30m left</p>
+                            <input type="text" class="input-field" style="border-color: #14B8A6;" placeholder="Feeling safe? Let us know...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full App Preview -->
+            <div class="comparison-section">
+                <h3 style="color: #2C3E50; margin-bottom: 20px;">Full App Preview - All Three Options</h3>
+
+                <div class="color-grid">
+                    <!-- Blue App Card -->
+                    <div style="background: white; padding: 20px; border-radius: 16px; border: 2px solid rgba(59, 130, 246, 0.2);">
+                        <h4 style="color: #2C3E50; margin-bottom: 15px;">Blue Theme</h4>
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">🏠</div>
+                            <h2 style="background: linear-gradient(135deg, #3B82F6, #2563EB); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Made It Home</h2>
+                        </div>
+                        <button class="btn blue-primary" style="width: 100%; margin-bottom: 10px;">Start Check-in 📍</button>
+                        <button class="btn blue-secondary" style="width: 100%; margin-bottom: 10px;">View Friends</button>
+                        <button class="btn blue-success" style="width: 100%; margin-bottom: 10px;">Mark Safe ✅</button>
+                        <button class="btn blue-danger" style="width: 100%;">🚨 Emergency</button>
+                    </div>
+
+                    <!-- Purple App Card -->
+                    <div style="background: white; padding: 20px; border-radius: 16px; border: 2px solid rgba(139, 92, 246, 0.2);">
+                        <h4 style="color: #2C3E50; margin-bottom: 15px;">Purple Theme</h4>
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">🏠</div>
+                            <h2 style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Made It Home</h2>
+                        </div>
+                        <button class="btn purple-primary" style="width: 100%; margin-bottom: 10px;">Start Check-in 📍</button>
+                        <button class="btn purple-secondary" style="width: 100%; margin-bottom: 10px;">View Friends</button>
+                        <button class="btn purple-success" style="width: 100%; margin-bottom: 10px;">Mark Safe ✅</button>
+                        <button class="btn purple-danger" style="width: 100%;">🚨 Emergency</button>
+                    </div>
+
+                    <!-- Teal App Card -->
+                    <div style="background: white; padding: 20px; border-radius: 16px; border: 2px solid rgba(20, 184, 166, 0.2);">
+                        <h4 style="color: #2C3E50; margin-bottom: 15px;">Teal Theme ⭐</h4>
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">🏠</div>
+                            <h2 style="background: linear-gradient(135deg, #14B8A6, #0D9488); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Made It Home</h2>
+                        </div>
+                        <button class="btn teal-primary" style="width: 100%; margin-bottom: 10px;">Start Check-in 📍</button>
+                        <button class="btn teal-secondary" style="width: 100%; margin-bottom: 10px;">View Friends</button>
+                        <button class="btn teal-success" style="width: 100%; margin-bottom: 10px;">Mark Safe ✅</button>
+                        <button class="btn teal-danger" style="width: 100%;">🚨 Emergency</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color Psychology Comparison -->
+            <div style="background: #2C3E50; color: white; padding: 30px; border-radius: 16px; margin-top: 30px;">
+                <h3 style="margin-bottom: 20px;">🧠 Psychology Comparison</h3>
+
+                <div class="feature-list">
+                    <div class="feature-item" style="background: rgba(255,255,255,0.1);">
+                        <div class="check-icon blue-primary">💙</div>
+                        <div>
+                            <strong>Blue:</strong> Trust, stability, professional
+                        </div>
+                    </div>
+                    <div class="feature-item" style="background: rgba(255,255,255,0.1);">
+                        <div class="check-icon purple-primary">💜</div>
+                        <div>
+                            <strong>Purple:</strong> Creative, calming, premium
+                        </div>
+                    </div>
+                    <div class="feature-item" style="background: rgba(255,255,255,0.1);">
+                        <div class="check-icon teal-primary">🌊</div>
+                        <div>
+                            <strong>Teal:</strong> Healing, fresh, balanced
+                        </div>
+                    </div>
+                    <div class="feature-item" style="background: rgba(255,255,255,0.1);">
+                        <div class="check-icon" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">❌</div>
+                        <div>
+                            <strong>Red (avoid):</strong> Danger, anxiety, urgency
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

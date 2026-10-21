@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    {# The URL IS the access token (alert UUID) and the live view makes
+       third-party requests (unpkg, OpenFreeMap tiles, S3 photo, Google
+       Maps) — never send a Referer carrying it. #}
+    <meta name="referrer" content="no-referrer">
+    {# Auto-refresh ONLY while the incident is live for this viewer: a
+       worried contact leaves this page open — each refresh re-renders
+       server truth (the all-clear card appears by itself). Stops once they've acknowledged,
+       once the owner is safe, or on the not-found card (nothing to watch).
+       Plain meta refresh — no JS required for this to work (each refresh
+       also rebuilds the trail map); the page loads MapLibre JS for the
+       location-history map (live section 4 only),
+       but every other section, including the refresh and the Acknowledge
+       form, works with JS off. #}
+    {% if not not_found and not acknowledged and not all_clear and not no_longer_current %}
+    <meta http-equiv="refresh" content="75">
+    {% endif %}
+    {# Title stays name-free (owner decision 2026-07-19): messengers unfurl
+       it into preview cards visible to bystanders/forwarded threads — the
+       SMS itself carries the name and urgency for the real recipient. #}
+    <title>{% if all_clear %}All clear — Made It Home{% else %}Alert — Made It Home{% endif %}</title>
+    {#
+        Public alert-details page for the contact who received an alert SMS
+        ("Details: madeitho.me/a/{alert_id}"). No auth — the recipient may
+        have no app and no account; the alert UUID in the URL is the access
+        token. Mirrors the layout of the native alert-details screen the app
+        no longer has (mobile/app/alert-details.tsx, removed — Circle
+        members use mobile web only): who sent it, what to do, the location
+        trail, device status and the outfit photo, plus the Acknowledge
+        control (docs/flow-review.md §4.3, 2.3).
+    #}
+    {# trail is only non-empty on the live view with location shared
+       (_alert_view_context), so the map assets load nowhere else. SRI
+       hashes are of the exact pinned 5.24.0 files. #}
+    {% if trail %}
+    <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet" integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK" crossorigin="anonymous" />
+    {% endif %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F8FAFB 0%, #E6F4F1 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #2C3E50;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        h1 { font-size: 22px; margin-bottom: 6px; }
+        .sos h1 { color: #C0392B; }
+        .clear h1 { color: #0D9488; }
+        p { color: #5A6C7D; line-height: 1.5; margin-bottom: 14px; }
+        .banner { font-size: 17px; font-weight: 700; color: #2C3E50; margin-bottom: 6px; }
+        .sos .banner { color: #C0392B; }
+        .section { margin-top: 22px; }
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #5B6B7A;
+            margin-bottom: 10px;
+        }
+        .facts { margin: 18px 0; }
+        .section .facts { margin: 0; }
+        .fact {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #EEF2F4;
+            font-size: 15px;
+        }
+        .fact .label { color: #5B6B7A; } /* >=4.5:1 on white (WCAG AA) */
+        .fact .value { font-weight: 600; text-align: right; }
+        .msg-label { color: #5B6B7A; font-size: 15px; margin-bottom: 4px; }
+        .msg-value { font-weight: 600; color: #2C3E50; white-space: pre-wrap; margin-bottom: 0; }
+        .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+        .section .actions { margin-top: 0; }
+        .btn {
+            display: block;
+            text-align: center;
+            padding: 14px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 16px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-primary { background: #14B8A6; color: white; }
+        .btn-primary:hover { background: #0D9488; }
+        .btn-secondary { background: #EEF6F5; color: #0D9488; }
+        .btn-danger { background: #FDECEA; color: #C0392B; }
+        /* Acked state: the checked, grayed-out button IS the entire ack
+           UI — no badges, no notices (owner decision). */
+        .btn-acked {
+            background: #E5E8EB;
+            color: #6B7A88;
+            cursor: default;
+        }
+        .steps { font-size: 14px; color: #5A6C7D; margin-top: 18px; line-height: 1.6; }
+        #map {
+            width: 100%;
+            height: 220px;
+            border-radius: 12px;
+            background: #EEF2F4;
+            margin-bottom: 10px;
+        }
+        .outfit-photo { max-width: 100%; border-radius: 12px; margin-top: 4px; display: block; }
+    </style>
+</head>
+<body>
+    {% if not_found %}
+    <div class="card">
+        <h1>This alert link isn't valid</h1>
+        <p>The link may be incomplete or the alert may have been removed.</p>
+    </div>
+    {% elif all_clear %}
+    <div class="card clear">
+        <h1>✅ All clear</h1>
+        <p>{{ owner_first }} has checked in and marked themselves safe. Nothing more to do — thank you for being in their Circle.</p>
+    </div>
+    {% elif no_longer_current %}
+    <div class="card">
+        <h1>This alert is no longer current</h1>
+        <p>If {{ owner_first }} is still missing, contact law enforcement.</p>
+    </div>
+    {% else %}
+    <div class="card{% if is_sos %} sos{% endif %}">
+        {# 1. Header: type label, with the existing SOS/missed banner
+           sentence and explanation below it. #}
+        <h1>{{ alert_type_label }}</h1>
+        <p class="banner">{% if is_sos %}🚨 {{ owner_first }} pressed SOS{% else %}⚠️ {{ owner_first }} missed their check-in{% endif %}</p>
+        <p>{% if is_sos %}{{ owner_first }} deliberately sent an SOS alert and needs help now.{% else %}{{ owner_first }} set a check-in time on Made It Home and hasn't marked themselves safe.{% endif %}</p>
+
+        {# 2. From / Sent at / Message #}
+        <div class="facts">
+            <div class="fact"><span class="label">From</span><span class="value">{{ owner_full_name }}{% if owner_phone_display %} · {{ owner_phone_display }}{% endif %}</span></div>
+            {% if sent_at_local %}
+            <div class="fact"><span class="label">Sent at</span><span class="value">{{ sent_at_local }}</span></div>
+            {% endif %}
+        </div>
+        {% if message %}
+        <div class="msg-label">Message</div>
+        <p class="msg-value">{{ message }}</p>
+        {% endif %}
+
+        {# 3. Take action: call, text, navigate (location shared only),
+           acknowledge, call 911. #}
+        <div class="section">
+            <div class="section-title">Take action</div>
+            <div class="actions">
+                <a class="btn btn-primary" href="tel:{{ owner_phone_e164 }}">Call {{ owner_first }}{% if owner_phone_display %} · {{ owner_phone_display }}{% endif %}</a>
+                <a class="btn btn-secondary" href="sms:{{ owner_phone_e164 }}">Text {{ owner_first }}</a>
+                {% if location_sharing_enabled and latitude is not none and longitude is not none %}
+                <a class="btn btn-secondary" href="https://maps.google.com/?q={{ latitude }},{{ longitude }}" target="_blank" rel="noopener noreferrer">Navigate to last known location</a>
+                {% endif %}
+                {% if acknowledged %}
+                <button type="button" class="btn btn-acked" disabled>✓ Acknowledged</button>
+                {% else %}
+                <form method="post" action="/alerts/{{ alert_id }}/acknowledge">
+                    <button type="submit" class="btn btn-primary">Acknowledge</button>
+                </form>
+                {% endif %}
+                <a class="btn btn-danger" href="tel:911">Call 911</a>
+            </div>
+        </div>
+
+        {# 4. Location history: the trail map, only when the owner shared
+           location and there are points. With JS off, a blocked CDN, no
+           WebGL, or a style that never loads, the whole section hides —
+           the "Navigate to last known location" button above is the
+           fallback. Non-fatal map errors (a tile, a sprite icon) never
+           hide it. #}
+        {% if trail %}
+        <div class="section" id="location-history">
+            <div class="section-title">Location history</div>
+            <div id="map"></div>
+            <noscript><style>#location-history { display: none; }</style></noscript>
+        </div>
+        {% endif %}
+
+        {# 5. Session details: destination, expected return. #}
+        {% if destination or expected_return_local %}
+        <div class="section">
+            <div class="section-title">Session details</div>
+            <div class="facts">
+                {% if destination %}
+                <div class="fact"><span class="label">Was headed to</span><span class="value">{{ destination }}</span></div>
+                {% endif %}
+                {% if expected_return_local %}
+                <div class="fact"><span class="label">Expected back</span><span class="value">{{ expected_return_local }}</span></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# 6. Device status: battery and last ping have no sharing toggle —
+           shown whenever there's a reading (permission-free,
+           safety-critical; the snapshot leaves both ungated). #}
+        {% if battery_pct is not none or last_ping_local %}
+        <div class="section">
+            <div class="section-title">Device status</div>
+            <div class="facts">
+                {% if battery_pct is not none %}
+                <div class="fact"><span class="label">Last known battery</span><span class="value">{{ battery_pct }}%{% if battery_state == "charging" %} · Charging{% endif %}</span></div>
+                {% endif %}
+                {% if last_ping_local %}
+                <div class="fact"><span class="label">Last pinged</span><span class="value">{{ last_ping_local }}</span></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# 7. Outfit photo. #}
+        {% if outfit_photo_url %}
+        <div class="section">
+            <div class="section-title">Outfit photo</div>
+            <img class="outfit-photo" src="{{ outfit_photo_url }}" alt="What {{ owner_first }} was wearing" loading="lazy">
+        </div>
+        {% endif %}
+
+        {# 8. What to do. #}
+        <div class="steps">
+            <strong>What to do:</strong> call or text {{ owner_first }} first. If you can't reach them{% if latitude is not none %}, check the last known location above{% endif %} — and if you believe they're in danger, call 911 with their last known whereabouts.
+        </div>
+    </div>
+    {% if trail %}
+    <script id="trail-data" type="application/json">{{ trail|tojson }}</script>
+    <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
+    <script>
+    (function () {
+        // Hide the Location history section ONLY when the map genuinely
+        // cannot render: MapLibre never arrived (blocked CDN / SRI
+        // mismatch), the constructor threw (no WebGL), the style JSON
+        // itself failed to load, or no style arrived within STYLE_TIMEOUT.
+        // The "Navigate to last known location" button stays as the
+        // fallback. Once the style has arrived the map is "working" and
+        // NOTHING hides the section again — a missing sprite image, a
+        // failed tile/glyph or a slow first paint is not fatal. Every other
+        // section is plain HTML and works without this script.
+        var STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+        var STYLE_TIMEOUT = 20000;
+        var section = document.getElementById('location-history');
+        var dataEl = document.getElementById('trail-data');
+        if (!section || !dataEl) { return; }
+        var working = false;
+        var timer = null;
+        function hide() {
+            if (working) { return; }
+            clearTimeout(timer);
+            section.style.display = 'none';
+        }
+        function markWorking() {
+            if (working) { return; }
+            working = true;
+            clearTimeout(timer);
+        }
+        // Only the style request's own failure is fatal: MapLibre reports
+        // every failed fetch (network errors included) as an AJAXError
+        // carrying its url; tile errors carry a sourceId/tile, sprite and
+        // glyph errors their own url.
+        function isStyleFailure(e) {
+            var url = e && e.error && e.error.url;
+            return typeof url === 'string' && url.split('?')[0] === STYLE_URL;
+        }
+        if (typeof maplibregl === 'undefined') { hide(); return; }
+        var map;
+        var coords;
+        var last;
+        try {
+            var points = JSON.parse(dataEl.textContent);
+            if (!points || !points.length) { hide(); return; }
+            coords = points.map(function (p) { return [p.lng, p.lat]; });
+            last = coords[coords.length - 1];
+            // Throws when WebGL is unavailable.
+            map = new maplibregl.Map({
+                container: 'map',
+                style: STYLE_URL,
+                center: last,
+                zoom: 15
+            });
+        } catch (e) {
+            hide();
+            return;
+        }
+        timer = setTimeout(hide, STYLE_TIMEOUT);
+        map.on('styledata', markWorking);
+        map.on('load', markWorking);
+        map.on('error', function (e) {
+            if (!working && isStyleFailure(e)) { hide(); return; }
+            // Non-fatal (a tile, glyph or sprite): keep the map, log it.
+            if (window.console) { console.warn('map:', e && e.error); }
+        });
+        // The liberty style references POI icons its sprite lacks; supply a
+        // transparent 1x1 placeholder instead of logging a warning for each.
+        map.on('styleimagemissing', function (e) {
+            try {
+                if (!map.hasImage(e.id)) {
+                    map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
+                }
+            } catch (err) { /* benign: a missing icon never hides the map */ }
+        });
+        map.on('load', function () {
+            try {
+                new maplibregl.Marker({ color: '#C0392B' }).setLngLat(last).addTo(map);
+                // One fix: only the latest marker at the initial center/zoom
+                // — no line (a 1-point LineString is invalid GeoJSON) and no
+                // fitBounds (zero-area bounds would zoom to maxZoom).
+                if (coords.length < 2) { return; }
+                map.addSource('trail', {
+                    type: 'geojson',
+                    data: {
+                        type: 'Feature',
+                        properties: {},
+                        geometry: { type: 'LineString', coordinates: coords }
+                    }
+                });
+                map.addLayer({
+                    id: 'trail-line',
+                    type: 'line',
+                    source: 'trail',
+                    paint: { 'line-color': '#14B8A6', 'line-width': 3 }
+                });
+                new maplibregl.Marker({ color: '#6B7A88' }).setLngLat(coords[0]).addTo(map);
+                var bounds = coords.reduce(function (b, c) {
+                    return b.extend(c);
+                }, new maplibregl.LngLatBounds(coords[0], coords[0]));
+                map.fitBounds(bounds, { padding: 40, maxZoom: 16 });
+            } catch (err) {
+                // The map itself works — keep it (the Navigate button still
+                // carries the last fix); just surface the overlay failure.
+                if (window.console) { console.warn('map trail:', err); }
+            }
+        });
+    })();
+    </script>
+    {% endif %}
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,980 @@
+diff --git a/node_modules/expo-live-activity/build/index.d.ts b/node_modules/expo-live-activity/build/index.d.ts
+index 1253114..d036321 100644
+--- a/node_modules/expo-live-activity/build/index.d.ts
++++ b/node_modules/expo-live-activity/build/index.d.ts
+@@ -3,9 +3,11 @@ type Voidable<T> = T | void;
+ export type DynamicIslandTimerType = 'circular' | 'digital';
+ type ProgressBarType = {
+     date?: number;
++    startDate?: number;
+     progress?: undefined;
+ } | {
+     date?: undefined;
++    startDate?: undefined;
+     progress?: number;
+ };
+ export type LiveActivityState = {
+@@ -14,6 +16,18 @@ export type LiveActivityState = {
+     progressBar?: ProgressBarType;
+     imageName?: string;
+     dynamicIslandImageName?: string;
++    /**
++     * Server-truth overdue flag. The widget ORs this with its on-device stale
++     * flip (staleDate = progressBar.date), so pass true once the app knows the
++     * deadline passed (missed/alerted states).
++     */
++    overdue?: boolean;
++    /**
++     * Pre-baked copy the widget swaps to when it flips to the overdue
++     * treatment on-device (deadline passing while the app is suspended).
++     */
++    overdueTitle?: string;
++    overdueSubtitle?: string;
+ };
+ export type NativeLiveActivityState = {
+     title: string;
+@@ -41,6 +55,8 @@ export type ImageSize = {
+ export type ImageContentFit = 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+ export type LiveActivityConfig = {
+     backgroundColor?: string;
++    /** Background swapped in by the widget while the activity is overdue. */
++    overdueBackgroundColor?: string;
+     titleColor?: string;
+     subtitleColor?: string;
+     progressViewTint?: string;
+@@ -88,6 +104,14 @@ export declare function stopActivity(id: string, state: LiveActivityState): any;
+  * @param {LiveActivityState} state The updated state for the live activity.
+  */
+ export declare function updateActivity(id: string, state: LiveActivityState): any;
++/**
++ * Starts a live activity, or updates the running one in place if one already
++ * exists (at most one per app) — idempotent, so reconciling from app state
++ * never spawns a duplicate across relaunches.
++ */
++export declare function startOrUpdateActivity(state: LiveActivityState, config?: LiveActivityConfig): Voidable<string>;
++/** Ends every running live activity immediately (no id needed). */
++export declare function endAllActivities(): void;
+ export declare function addActivityTokenListener(listener: (event: ActivityTokenReceivedEvent) => void): Voidable<EventSubscription>;
+ export declare function addActivityPushToStartTokenListener(listener: (event: ActivityPushToStartTokenReceivedEvent) => void): Voidable<EventSubscription>;
+ export declare function addActivityUpdatesListener(listener: (event: ActivityUpdateEvent) => void): Voidable<EventSubscription>;
+diff --git a/node_modules/expo-live-activity/build/index.js b/node_modules/expo-live-activity/build/index.js
+index 4012ddc..cb53718 100644
+--- a/node_modules/expo-live-activity/build/index.js
++++ b/node_modules/expo-live-activity/build/index.js
+@@ -74,6 +74,23 @@ export function updateActivity(id, state) {
+     if (assertIOS('updateActivity'))
+         return ExpoLiveActivityModule.updateActivity(id, state);
+ }
++/**
++ * Idempotent start-or-update: updates the running activity in place if one
++ * exists (no duplicate across relaunches), else starts a new one.
++ * @returns {string} The identifier of the activity, or undefined off-iOS.
++ */
++export function startOrUpdateActivity(state, config) {
++    if (assertIOS('startOrUpdateActivity'))
++        return ExpoLiveActivityModule.startOrUpdateActivity(state, normalizeConfig(config));
++}
++/**
++ * Ends every running live activity immediately. "Stop whatever's active" with
++ * no id needed — the analogue of cancelling the Android ongoing notification.
++ */
++export function endAllActivities() {
++    if (assertIOS('endAllActivities'))
++        return ExpoLiveActivityModule.endAllActivities();
++}
+ export function addActivityTokenListener(listener) {
+     if (assertIOS('addActivityTokenListener'))
+         return ExpoLiveActivityModule.addListener('onTokenReceived', listener);
+diff --git a/node_modules/expo-live-activity/ios-files/Date+toTimerInterval.swift b/node_modules/expo-live-activity/ios-files/Date+toTimerInterval.swift
+index 3571bc8..490e6fa 100644
+--- a/node_modules/expo-live-activity/ios-files/Date+toTimerInterval.swift
++++ b/node_modules/expo-live-activity/ios-files/Date+toTimerInterval.swift
+@@ -4,4 +4,22 @@ extension Date {
+   static func toTimerInterval(miliseconds: Double) -> ClosedRange<Self> {
+     now ... max(now, Date(timeIntervalSince1970: miliseconds / 1000))
+   }
++
++  // Full-session interval for the fill bar: start → deadline, so the bar
++  // shows true session progress instead of restarting from "now of the last
++  // update". Clamped so the range stays valid whatever the clock says.
++  static func toFillInterval(
++    startMiliseconds: Double?, endMiliseconds: Double
++  ) -> ClosedRange<Self> {
++    let end = Date(timeIntervalSince1970: endMiliseconds / 1000)
++    let start = startMiliseconds.map { Date(timeIntervalSince1970: $0 / 1000) } ?? now
++    return min(start, end) ... end
++  }
++
++  // Count-up interval since the deadline, for the "how long overdue" hero
++  // timer. Capped at 24h — a live activity never survives that long anyway.
++  static func overdueInterval(endMiliseconds: Double) -> ClosedRange<Self> {
++    let end = Date(timeIntervalSince1970: endMiliseconds / 1000)
++    return min(now, end) ... end.addingTimeInterval(24 * 60 * 60)
++  }
+ }
+diff --git a/node_modules/expo-live-activity/ios-files/LiveActivityView.swift b/node_modules/expo-live-activity/ios-files/LiveActivityView.swift
+index 1a00e92..c7b7ccc 100644
+--- a/node_modules/expo-live-activity/ios-files/LiveActivityView.swift
++++ b/node_modules/expo-live-activity/ios-files/LiveActivityView.swift
+@@ -3,244 +3,113 @@ import WidgetKit
+ 
+ #if canImport(ActivityKit)
+ 
+-  struct ConditionalForegroundViewModifier: ViewModifier {
+-    let color: String?
+-
+-    func body(content: Content) -> some View {
+-      if let color = color {
+-        content.foregroundStyle(Color(hex: color))
+-      } else {
+-        content
+-      }
+-    }
+-  }
+-
+-  struct DebugLog: View {
+-    #if DEBUG
+-      private let message: String
+-      init(_ message: String) {
+-        self.message = message
+-        print(message)
+-      }
+-
+-      var body: some View {
+-        Text(message)
+-          .font(.caption2)
+-          .foregroundStyle(.red)
+-      }
+-    #else
+-      init(_: String) {}
+-      var body: some View { EmptyView() }
+-    #endif
+-  }
+-
++  // Made It Home lock-screen card. This fork serves exactly one app, so the
++  // upstream config-driven layout machinery (imagePosition / contentFit /
++  // padding permutations) is gone in favor of one fixed, branded layout:
++  //
++  //   [mark]  <title>                      <hero countdown>
++  //           <subtitle>
++  //   [progress bar filling left → right]
++  //
++  // Overdue (server-truth flag from the app, or the on-device stale flip at
++  // the deadline) swaps the copy to the pre-baked overdue strings, replaces
++  // the countdown with a count-up "how long overdue" timer, and drops the
++  // bar; the widget flips the background to the danger color.
+   struct LiveActivityView: View {
+     let contentState: LiveActivityAttributes.ContentState
+     let attributes: LiveActivityAttributes
+-    @State private var imageContainerSize: CGSize?
++    let isOverdue: Bool
+ 
+-    var progressViewTint: Color? {
+-      attributes.progressViewTint.map { Color(hex: $0) }
++    private var textColor: Color {
++      attributes.titleColor.map { Color(hex: $0) } ?? .white
+     }
+ 
+-    private var imageAlignment: Alignment {
+-      switch attributes.imageAlign {
+-      case "center":
+-        return .center
+-      case "bottom":
+-        return .bottom
+-      default:
+-        return .top
+-      }
++    private var subtitleColor: Color {
++      attributes.subtitleColor.map { Color(hex: $0) } ?? .white.opacity(0.85)
+     }
+ 
+-    private func alignedImage(imageName: String) -> some View {
+-      let defaultHeight: CGFloat = 64
+-      let defaultWidth: CGFloat = 64
+-      let containerHeight = imageContainerSize?.height
+-      let containerWidth = imageContainerSize?.width
+-      let hasWidthConstraint = (attributes.imageWidthPercent != nil) || (attributes.imageWidth != nil)
+-
+-      let computedHeight: CGFloat? = {
+-        if let percent = attributes.imageHeightPercent {
+-          let clamped = min(max(percent, 0), 100) / 100.0
+-          // Use the row height as a base. Fallback to default when row height is not measured yet.
+-          let base = (containerHeight ?? defaultHeight)
+-          return base * clamped
+-        } else if let size = attributes.imageHeight {
+-          return CGFloat(size)
+-        } else if hasWidthConstraint {
+-          // Mimic CSS: when only width is set, keep height automatic to preserve aspect ratio
+-          return nil
+-        } else {
+-          // Mimic CSS: this works against CSS but provides a better default behavior.
+-          // When no width/height is set, use a default size (64pt)
+-          // Width will adjust automatically base on aspect ratio
+-          return defaultHeight
+-        }
+-      }()
+-
+-      let computedWidth: CGFloat? = {
+-        if let percent = attributes.imageWidthPercent {
+-          let clamped = min(max(percent, 0), 100) / 100.0
+-          let base = (containerWidth ?? defaultWidth)
+-          return base * clamped
+-        } else if let size = attributes.imageWidth {
+-          return CGFloat(size)
+-        } else {
+-          return nil // Keep aspect fit based on height
+-        }
+-      }()
+-
+-      return ZStack(alignment: .center) {
+-        Group {
+-          let fit = attributes.contentFit ?? "cover"
+-          switch fit {
+-          case "contain":
+-            Image.dynamic(assetNameOrPath: imageName).resizable().scaledToFit().frame(width: computedWidth, height: computedHeight)
+-          case "fill":
+-            Image.dynamic(assetNameOrPath: imageName).resizable().frame(
+-              width: computedWidth,
+-              height: computedHeight
+-            )
+-          case "none":
+-            Image.dynamic(assetNameOrPath: imageName).renderingMode(.original).frame(width: computedWidth, height: computedHeight)
+-          case "scale-down":
+-            if let uiImage = UIImage.dynamic(assetNameOrPath: imageName) {
+-              // Determine the target box. When width/height are nil, we use image's intrinsic dimension for comparison.
+-              let targetHeight = computedHeight ?? uiImage.size.height
+-              let targetWidth = computedWidth ?? uiImage.size.width
+-              let shouldScaleDown = uiImage.size.height > targetHeight || uiImage.size.width > targetWidth
+-
+-              if shouldScaleDown {
+-                Image(uiImage: uiImage)
+-                  .resizable()
+-                  .scaledToFit()
+-                  .frame(width: computedWidth, height: computedHeight)
+-              } else {
+-                Image(uiImage: uiImage)
+-                  .renderingMode(.original)
+-                  .frame(width: min(uiImage.size.width, targetWidth), height: min(uiImage.size.height, targetHeight))
+-              }
+-            } else {
+-              DebugLog("⚠️[ExpoLiveActivity] assetNameOrPath couldn't resolve to UIImage")
+-            }
+-          case "cover":
+-            Image.dynamic(assetNameOrPath: imageName).resizable().scaledToFill().frame(
+-              width: computedWidth,
+-              height: computedHeight
+-            ).clipped()
+-          default:
+-            DebugLog("⚠️[ExpoLiveActivity] Unknown contentFit '\(fit)'")
+-          }
+-        }
+-      }
+-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: imageAlignment)
+-      .background(
+-        GeometryReader { proxy in
+-          Color.clear
+-            .onAppear {
+-              let s = proxy.size
+-              if s.width > 0, s.height > 0 { imageContainerSize = s }
+-            }
+-            .onChange(of: proxy.size) { s in
+-              if s.width > 0, s.height > 0 { imageContainerSize = s }
+-            }
+-        }
+-      )
++    private var barTint: Color {
++      attributes.progressViewTint.map { Color(hex: $0) } ?? .white
+     }
+ 
+     var body: some View {
+-      let defaultPadding = 24
+-
+-      let top = CGFloat(
+-        attributes.paddingDetails?.top
+-          ?? attributes.paddingDetails?.vertical
+-          ?? attributes.padding
+-          ?? defaultPadding
+-      )
+-
+-      let bottom = CGFloat(
+-        attributes.paddingDetails?.bottom
+-          ?? attributes.paddingDetails?.vertical
+-          ?? attributes.padding
+-          ?? defaultPadding
+-      )
+-
+-      let leading = CGFloat(
+-        attributes.paddingDetails?.left
+-          ?? attributes.paddingDetails?.horizontal
+-          ?? attributes.padding
+-          ?? defaultPadding
+-      )
+-
+-      let trailing = CGFloat(
+-        attributes.paddingDetails?.right
+-          ?? attributes.paddingDetails?.horizontal
+-          ?? attributes.padding
+-          ?? defaultPadding
+-      )
+-
+-      VStack(alignment: .leading) {
+-        let position = attributes.imagePosition ?? "right"
+-        let isStretch = position.contains("Stretch")
+-        let isLeftImage = position.hasPrefix("left")
+-        let hasImage = contentState.imageName != nil
+-        let effectiveStretch = isStretch && hasImage
+-
+-        HStack(alignment: .center) {
+-          if hasImage, isLeftImage {
+-            if let imageName = contentState.imageName {
+-              alignedImage(imageName: imageName)
+-            }
++      VStack(alignment: .leading, spacing: 12) {
++        HStack(alignment: .center, spacing: 12) {
++          // Fixed square frame + scaledToFit: the mark can never stretch or
++          // escape the card, whatever the source image's aspect ratio.
++          if let imageName = contentState.imageName {
++            Image.dynamic(assetNameOrPath: imageName)
++              .resizable()
++              .scaledToFit()
++              .frame(width: 40, height: 40)
+           }
+ 
+           VStack(alignment: .leading, spacing: 2) {
+-            Text(contentState.title)
+-              .font(.title2)
++            Text(contentState.displayTitle(isOverdue: isOverdue))
++              .font(.headline)
+               .fontWeight(.semibold)
+-              .modifier(ConditionalForegroundViewModifier(color: attributes.titleColor))
+-
+-            if let subtitle = contentState.subtitle {
++              .foregroundStyle(textColor)
++            if let subtitle = contentState.displaySubtitle(isOverdue: isOverdue) {
+               Text(subtitle)
+-                .font(.title3)
+-                .modifier(ConditionalForegroundViewModifier(color: attributes.subtitleColor))
++                .font(.subheadline)
++                .foregroundStyle(subtitleColor)
+             }
+-
+-            if effectiveStretch {
+-              if let date = contentState.timerEndDateInMilliseconds {
+-                ProgressView(timerInterval: Date.toTimerInterval(miliseconds: date))
+-                  .tint(progressViewTint)
+-                  .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
+-              } else if let progress = contentState.progress {
+-                ProgressView(value: progress)
+-                  .tint(progressViewTint)
+-                  .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
++          }
++          .layoutPriority(1)
++
++          Spacer(minLength: 8)
++
++          // The countdown is the point of the card — hero-sized, ticking
++          // every second. Once overdue it counts UP from the deadline: the
++          // number answers "how long overdue am I".
++          if let end = contentState.timerEndDateInMilliseconds {
++            VStack(alignment: .trailing, spacing: 0) {
++              if isOverdue {
++                heroTimer(
++                  Text(
++                    timerInterval: Date.overdueInterval(endMiliseconds: end),
++                    countsDown: false
++                  )
++                )
++                Text("OVERDUE")
++                  .font(.caption2.weight(.bold))
++                  .kerning(1.5)
++                  .foregroundStyle(textColor.opacity(0.85))
++              } else {
++                heroTimer(Text(timerInterval: Date.toTimerInterval(miliseconds: end)))
+               }
+             }
+-          }.layoutPriority(1)
+-
+-          if hasImage, !isLeftImage { // right side (default)
+-            Spacer()
+-            if let imageName = contentState.imageName {
+-              alignedImage(imageName: imageName)
+-            }
+           }
+         }
+ 
+-        if !effectiveStretch {
+-          if let date = contentState.timerEndDateInMilliseconds {
+-            ProgressView(timerInterval: Date.toTimerInterval(miliseconds: date))
+-              .tint(progressViewTint)
+-              .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
+-          } else if let progress = contentState.progress {
+-            ProgressView(value: progress)
+-              .tint(progressViewTint)
+-              .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
+-          }
++        // Session progress, filling left → right from start to deadline
++        // (countsDown: false = fill, not drain). Hidden once overdue — the
++        // count-up hero carries the state from there.
++        if !isOverdue, let end = contentState.timerEndDateInMilliseconds {
++          ProgressView(
++            timerInterval: Date.toFillInterval(
++              startMiliseconds: contentState.timerStartDateInMilliseconds,
++              endMiliseconds: end
++            ),
++            countsDown: false,
++            label: { EmptyView() },
++            currentValueLabel: { EmptyView() }
++          )
++          .progressViewStyle(.linear)
++          .tint(barTint)
+         }
+       }
+-      .padding(EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing))
++      .padding(16)
++    }
++
++    private func heroTimer(_ timer: Text) -> some View {
++      timer
++        .font(.system(size: 34, weight: .bold, design: .rounded))
++        .monospacedDigit()
++        .multilineTextAlignment(.trailing)
++        .minimumScaleFactor(0.5)
++        .lineLimit(1)
++        .foregroundStyle(textColor)
+     }
+   }
+ 
+diff --git a/node_modules/expo-live-activity/ios-files/LiveActivityWidget.swift b/node_modules/expo-live-activity/ios-files/LiveActivityWidget.swift
+index 24cd8c5..70e4165 100644
+--- a/node_modules/expo-live-activity/ios-files/LiveActivityWidget.swift
++++ b/node_modules/expo-live-activity/ios-files/LiveActivityWidget.swift
+@@ -2,6 +2,10 @@ import ActivityKit
+ import SwiftUI
+ import WidgetKit
+ 
++// NOTE: this struct is the widget-target copy of
++// ios/LiveActivityAttributes.swift (the app-target copy). ActivityKit moves
++// ContentState between the two processes as Codable JSON, so the two
++// declarations must keep identical field names.
+ struct LiveActivityAttributes: ActivityAttributes {
+   struct ContentState: Codable, Hashable {
+     var title: String
+@@ -10,10 +14,26 @@ struct LiveActivityAttributes: ActivityAttributes {
+     var progress: Double?
+     var imageName: String?
+     var dynamicIslandImageName: String?
++    // Overdue treatment. `overdue` is the app's server-truth flag; the widget
++    // ORs it with `context.isStale` (staleDate = the deadline) so the flip to
++    // the danger appearance happens on-device the moment the deadline passes,
++    // with no app process involved. The pre-baked overdue copy is what the
++    // widget swaps to on that native flip, before the app has a chance to
++    // push refreshed state.
++    var overdue: Bool?
++    var overdueTitle: String?
++    var overdueSubtitle: String?
++    // Start of the session (ms since epoch) so the progress bar can fill
++    // start→deadline instead of restarting from "now of last update".
++    var timerStartDateInMilliseconds: Double?
+   }
+ 
+   var name: String
+   var backgroundColor: String?
++  // Background swapped in when the activity is overdue (stale or flagged).
++  // Keeping both colors in the attributes means the danger flip is a pure
++  // re-render — no end+restart of the activity.
++  var overdueBackgroundColor: String?
+   var titleColor: String?
+   var subtitleColor: String?
+   var progressViewTint: String?
+@@ -45,22 +65,65 @@ struct LiveActivityAttributes: ActivityAttributes {
+   }
+ }
+ 
++extension LiveActivityAttributes.ContentState {
++  // Copy swap on the overdue flip. The app pre-bakes the overdue strings so
++  // the on-device stale flip (deadline passing while the app is suspended)
++  // shows the right words, not the leftover "Back by ..." copy. Once the app
++  // pushes refreshed server-truth state (notifying → notified → claimed) it
++  // sets title and overdueTitle to the same strings, so both paths agree.
++  func displayTitle(isOverdue: Bool) -> String {
++    isOverdue ? (overdueTitle ?? title) : title
++  }
++
++  func displaySubtitle(isOverdue: Bool) -> String? {
++    isOverdue ? (overdueSubtitle ?? subtitle) : subtitle
++  }
++}
++
++// Overdue = the app said so (server truth pushed via an update), OR the
++// staleDate (= the deadline) passed and the system re-rendered us — whichever
++// happens first. The latter is what makes the danger flip instant while the
++// phone is locked and the app suspended or killed.
++private func isOverdue(_ context: ActivityViewContext<LiveActivityAttributes>) -> Bool {
++  context.state.overdue == true || context.isStale
++}
++
++private func backgroundTint(
++  _ context: ActivityViewContext<LiveActivityAttributes>, overdue: Bool
++) -> Color? {
++  let hex = overdue
++    ? (context.attributes.overdueBackgroundColor ?? context.attributes.backgroundColor)
++    : context.attributes.backgroundColor
++  return hex.map { Color(hex: $0) }
++}
++
+ struct LiveActivityWidget: Widget {
+   var body: some WidgetConfiguration {
+     ActivityConfiguration(for: LiveActivityAttributes.self) { context in
+-      LiveActivityView(contentState: context.state, attributes: context.attributes)
+-        .activityBackgroundTint(
+-          context.attributes.backgroundColor.map { Color(hex: $0) }
+-        )
+-        .activitySystemActionForegroundColor(Color.black)
+-        .applyWidgetURL(from: context.attributes.deepLinkUrl)
++      let overdue = isOverdue(context)
++      LiveActivityView(
++        contentState: context.state,
++        attributes: context.attributes,
++        isOverdue: overdue
++      )
++      .activityBackgroundTint(backgroundTint(context, overdue: overdue))
++      .activitySystemActionForegroundColor(Color.white)
++      .applyWidgetURL(from: context.attributes.deepLinkUrl)
+     } dynamicIsland: { context in
+-      DynamicIsland {
++      let overdue = isOverdue(context)
++      let dangerTint = overdue
++        ? context.attributes.overdueBackgroundColor
++        : context.attributes.progressViewTint
++
++      return DynamicIsland {
+         DynamicIslandExpandedRegion(.leading, priority: 1) {
+-          dynamicIslandExpandedLeading(title: context.state.title, subtitle: context.state.subtitle)
+-            .dynamicIsland(verticalPlacement: .belowIfTooWide)
+-            .padding(.leading, 5)
+-            .applyWidgetURL(from: context.attributes.deepLinkUrl)
++          dynamicIslandExpandedLeading(
++            title: context.state.displayTitle(isOverdue: overdue),
++            subtitle: context.state.displaySubtitle(isOverdue: overdue)
++          )
++          .dynamicIsland(verticalPlacement: .belowIfTooWide)
++          .padding(.leading, 5)
++          .applyWidgetURL(from: context.attributes.deepLinkUrl)
+         }
+         DynamicIslandExpandedRegion(.trailing) {
+           if let imageName = context.state.imageName {
+@@ -72,7 +135,10 @@ struct LiveActivityWidget: Widget {
+         DynamicIslandExpandedRegion(.bottom) {
+           if let date = context.state.timerEndDateInMilliseconds {
+             dynamicIslandExpandedBottom(
+-              endDate: date, progressViewTint: context.attributes.progressViewTint
++              endDate: date,
++              startDate: context.state.timerStartDateInMilliseconds,
++              isOverdue: overdue,
++              tint: dangerTint
+             )
+             .padding(.horizontal, 5)
+             .applyWidgetURL(from: context.attributes.deepLinkUrl)
+@@ -88,16 +154,18 @@ struct LiveActivityWidget: Widget {
+         if let date = context.state.timerEndDateInMilliseconds {
+           compactTimer(
+             endDate: date,
++            isOverdue: overdue,
+             timerType: context.attributes.timerType ?? .circular,
+-            progressViewTint: context.attributes.progressViewTint
++            tint: dangerTint
+           ).applyWidgetURL(from: context.attributes.deepLinkUrl)
+         }
+       } minimal: {
+         if let date = context.state.timerEndDateInMilliseconds {
+           compactTimer(
+             endDate: date,
++            isOverdue: overdue,
+             timerType: context.attributes.timerType ?? .circular,
+-            progressViewTint: context.attributes.progressViewTint
++            tint: dangerTint
+           ).applyWidgetURL(from: context.attributes.deepLinkUrl)
+         }
+       }
+@@ -107,10 +175,21 @@ struct LiveActivityWidget: Widget {
+   @ViewBuilder
+   private func compactTimer(
+     endDate: Double,
++    isOverdue: Bool,
+     timerType: LiveActivityAttributes.DynamicIslandTimerType,
+-    progressViewTint: String?
++    tint: String?
+   ) -> some View {
+-    if timerType == .digital {
++    if isOverdue {
++      // Post-deadline the remaining-time readouts are meaningless; a danger
++      // count-up ("how long overdue") is the honest signal at a glance.
++      Text(timerInterval: Date.overdueInterval(endMiliseconds: endDate), countsDown: false)
++        .font(.system(size: 15, weight: .semibold))
++        .monospacedDigit()
++        .minimumScaleFactor(0.8)
++        .frame(maxWidth: 60)
++        .multilineTextAlignment(.trailing)
++        .foregroundStyle(tint.map { Color(hex: $0) } ?? .red)
++    } else if timerType == .digital {
+       Text(timerInterval: Date.toTimerInterval(miliseconds: endDate))
+         .font(.system(size: 15))
+         .minimumScaleFactor(0.8)
+@@ -119,7 +198,7 @@ struct LiveActivityWidget: Widget {
+         .multilineTextAlignment(.trailing)
+     } else {
+       circularTimer(endDate: endDate)
+-        .tint(progressViewTint.map { Color(hex: $0) })
++        .tint(tint.map { Color(hex: $0) })
+     }
+   }
+ 
+@@ -127,12 +206,13 @@ struct LiveActivityWidget: Widget {
+     VStack(alignment: .leading) {
+       Spacer()
+       Text(title)
+-        .font(.title2)
++        .font(.title3)
+         .foregroundStyle(.white)
+         .fontWeight(.semibold)
++        .minimumScaleFactor(0.8)
+       if let subtitle {
+         Text(subtitle)
+-          .font(.title3)
++          .font(.subheadline)
+           .minimumScaleFactor(0.8)
+           .foregroundStyle(.white.opacity(0.75))
+       }
+@@ -144,15 +224,45 @@ struct LiveActivityWidget: Widget {
+     VStack {
+       Spacer()
+       resizableImage(imageName: imageName)
++        .frame(maxWidth: 36, maxHeight: 36)
+       Spacer()
+     }
+   }
+ 
+-  private func dynamicIslandExpandedBottom(endDate: Double, progressViewTint: String?) -> some View {
+-    ProgressView(timerInterval: Date.toTimerInterval(miliseconds: endDate))
+-      .foregroundStyle(.white)
+-      .tint(progressViewTint.map { Color(hex: $0) })
++  @ViewBuilder
++  private func dynamicIslandExpandedBottom(
++    endDate: Double, startDate: Double?, isOverdue: Bool, tint: String?
++  ) -> some View {
++    if isOverdue {
++      HStack(alignment: .firstTextBaseline, spacing: 6) {
++        Text(timerInterval: Date.overdueInterval(endMiliseconds: endDate), countsDown: false)
++          .font(.system(size: 28, weight: .bold, design: .rounded))
++          .monospacedDigit()
++          .foregroundStyle(tint.map { Color(hex: $0) } ?? .red)
++        Text("overdue")
++          .font(.caption)
++          .foregroundStyle(.white.opacity(0.75))
++      }
++      .padding(.top, 5)
++    } else {
++      VStack(spacing: 6) {
++        Text(timerInterval: Date.toTimerInterval(miliseconds: endDate))
++          .font(.system(size: 28, weight: .bold, design: .rounded))
++          .monospacedDigit()
++          .foregroundStyle(.white)
++        ProgressView(
++          timerInterval: Date.toFillInterval(
++            startMiliseconds: startDate, endMiliseconds: endDate
++          ),
++          countsDown: false,
++          label: { EmptyView() },
++          currentValueLabel: { EmptyView() }
++        )
++        .progressViewStyle(.linear)
++        .tint(tint.map { Color(hex: $0) })
++      }
+       .padding(.top, 5)
++    }
+   }
+ 
+   private func circularTimer(endDate: Double) -> some View {
+diff --git a/node_modules/expo-live-activity/ios/ExpoLiveActivityModule.swift b/node_modules/expo-live-activity/ios/ExpoLiveActivityModule.swift
+index 6fdf9f5..bc1dfee 100644
+--- a/node_modules/expo-live-activity/ios/ExpoLiveActivityModule.swift
++++ b/node_modules/expo-live-activity/ios/ExpoLiveActivityModule.swift
+@@ -16,6 +16,9 @@ public class ExpoLiveActivityModule: Module {
+       @Field
+       var date: Double?
+ 
++      @Field
++      var startDate: Double?
++
+       @Field
+       var progress: Double?
+     }
+@@ -25,12 +28,24 @@ public class ExpoLiveActivityModule: Module {
+ 
+     @Field
+     var dynamicIslandImageName: String?
++
++    @Field
++    var overdue: Bool?
++
++    @Field
++    var overdueTitle: String?
++
++    @Field
++    var overdueSubtitle: String?
+   }
+ 
+   struct LiveActivityConfig: Record {
+     @Field
+     var backgroundColor: String?
+ 
++    @Field
++    var overdueBackgroundColor: String?
++
+     @Field
+     var titleColor: String?
+ 
+@@ -138,6 +153,91 @@ public class ExpoLiveActivityModule: Module {
+     }
+   }
+ 
++  // Single source for the JS-state → ContentState mapping — it was previously
++  // copy-pasted at every call site, so new fields silently drifted.
++  private func makeContentState(from state: LiveActivityState)
++    -> LiveActivityAttributes.ContentState
++  {
++    LiveActivityAttributes.ContentState(
++      title: state.title,
++      subtitle: state.subtitle,
++      timerEndDateInMilliseconds: state.progressBar?.date,
++      progress: state.progressBar?.progress,
++      overdue: state.overdue,
++      overdueTitle: state.overdueTitle,
++      overdueSubtitle: state.overdueSubtitle,
++      timerStartDateInMilliseconds: state.progressBar?.startDate
++    )
++  }
++
++  // staleDate = the timer deadline: when it passes, the system re-renders the
++  // widget with context.isStale == true. That re-render is what flips the
++  // card to the overdue treatment on-device, even with the app suspended.
++  private func staleDate(from state: LiveActivityState) -> Date? {
++    state.progressBar?.date.map { Date(timeIntervalSince1970: $0 / 1000) }
++  }
++
++  // Requests a brand-new activity from a config. Shared by startOrUpdateActivity's
++  // "no activity yet" path and its "background changed → restart" path (Live
++  // Activity attributes are immutable after start, so a new background can only
++  // be applied by ending and re-requesting).
++  @available(iOS 16.2, *)
++  private func requestActivity(
++    state: LiveActivityState, config: LiveActivityConfig
++  ) throws -> String {
++    guard ActivityAuthorizationInfo().areActivitiesEnabled else {
++      throw LiveActivitiesNotEnabledException()
++    }
++
++    let attributes = LiveActivityAttributes(
++      name: "ExpoLiveActivity",
++      backgroundColor: config.backgroundColor,
++      overdueBackgroundColor: config.overdueBackgroundColor,
++      titleColor: config.titleColor,
++      subtitleColor: config.subtitleColor,
++      progressViewTint: config.progressViewTint,
++      progressViewLabelColor: config.progressViewLabelColor,
++      deepLinkUrl: config.deepLinkUrl,
++      timerType: config.timerType == .digital ? .digital : .circular,
++      padding: config.padding,
++      paddingDetails: config.paddingDetails.map {
++        LiveActivityAttributes.PaddingDetails(
++          top: $0.top,
++          bottom: $0.bottom,
++          left: $0.left,
++          right: $0.right,
++          vertical: $0.vertical,
++          horizontal: $0.horizontal
++        )
++      },
++      imagePosition: config.imagePosition,
++      imageWidth: config.imageWidth,
++      imageHeight: config.imageHeight,
++      imageWidthPercent: config.imageWidthPercent,
++      imageHeightPercent: config.imageHeightPercent,
++      imageAlign: config.imageAlign,
++      contentFit: config.contentFit
++    )
++
++    let initialState = makeContentState(from: state)
++
++    let activity = try Activity.request(
++      attributes: attributes,
++      content: .init(state: initialState, staleDate: staleDate(from: state)),
++      pushType: pushNotificationsEnabled ? .token : nil
++    )
++
++    Task {
++      var newState = activity.content.state
++      try await updateImages(state: state, newState: &newState)
++      await activity.update(
++        ActivityContent(state: newState, staleDate: staleDate(from: state))
++      )
++    }
++
++    return activity.id
++  }
++
+   private func observePushToStartToken() {
+     guard #available(iOS 17.2, *), ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+ 
+@@ -219,6 +319,7 @@ public class ExpoLiveActivityModule: Module {
+         let attributes = LiveActivityAttributes(
+           name: "ExpoLiveActivity",
+           backgroundColor: config.backgroundColor,
++          overdueBackgroundColor: config.overdueBackgroundColor,
+           titleColor: config.titleColor,
+           subtitleColor: config.subtitleColor,
+           progressViewTint: config.progressViewTint,
+@@ -245,23 +346,20 @@ public class ExpoLiveActivityModule: Module {
+           contentFit: config.contentFit
+         )
+ 
+-        let initialState = LiveActivityAttributes.ContentState(
+-          title: state.title,
+-          subtitle: state.subtitle,
+-          timerEndDateInMilliseconds: state.progressBar?.date,
+-          progress: state.progressBar?.progress
+-        )
++        let initialState = makeContentState(from: state)
+ 
+         let activity = try Activity.request(
+           attributes: attributes,
+-          content: .init(state: initialState, staleDate: nil),
++          content: .init(state: initialState, staleDate: staleDate(from: state)),
+           pushType: pushNotificationsEnabled ? .token : nil
+         )
+ 
+         Task {
+           var newState = activity.content.state
+           try await updateImages(state: state, newState: &newState)
+-          await activity.update(ActivityContent(state: newState, staleDate: nil))
++          await activity.update(
++            ActivityContent(state: newState, staleDate: staleDate(from: state))
++          )
+         }
+ 
+         return activity.id
+@@ -281,12 +379,7 @@ public class ExpoLiveActivityModule: Module {
+ 
+       Task {
+         print("Stopping activity with id: \(activityId)")
+-        var newState = LiveActivityAttributes.ContentState(
+-          title: state.title,
+-          subtitle: state.subtitle,
+-          timerEndDateInMilliseconds: state.progressBar?.date,
+-          progress: state.progressBar?.progress
+-        )
++        var newState = self.makeContentState(from: state)
+         try await updateImages(state: state, newState: &newState)
+         await activity.end(
+           ActivityContent(state: newState, staleDate: nil),
+@@ -308,14 +401,62 @@ public class ExpoLiveActivityModule: Module {
+ 
+       Task {
+         print("Updating activity with id: \(activityId)")
+-        var newState = LiveActivityAttributes.ContentState(
+-          title: state.title,
+-          subtitle: state.subtitle,
+-          timerEndDateInMilliseconds: state.progressBar?.date,
+-          progress: state.progressBar?.progress
+-        )
++        var newState = self.makeContentState(from: state)
+         try await updateImages(state: state, newState: &newState)
+-        await activity.update(ActivityContent(state: newState, staleDate: nil))
++        await activity.update(
++          ActivityContent(state: newState, staleDate: self.staleDate(from: state))
++        )
++      }
++    }
++
++    // Idempotent start-or-update: if an activity is already running (there is at
++    // most one for this app), update it in place; otherwise start a new one.
++    // Lets JS reconcile from the active session with no id bookkeeping and no
++    // duplicate activities across app relaunches.
++    Function("startOrUpdateActivity") {
++      (state: LiveActivityState, maybeConfig: LiveActivityConfig?) -> String in
++      guard #available(iOS 16.2, *) else { throw UnsupportedOSException("16.2") }
++
++      let config = maybeConfig ?? LiveActivityConfig()
++
++      if let activity = Activity<LiveActivityAttributes>.activities.first {
++        // The background (and other colors) live in the immutable attributes,
++        // so they can't be changed by an update. When the background differs —
++        // e.g. the overdue → danger swap — end this activity and restart with
++        // the new appearance. Content-only changes update in place.
++        if activity.attributes.backgroundColor != config.backgroundColor {
++          Task {
++            await activity.end(nil, dismissalPolicy: .immediate)
++            _ = try? self.requestActivity(state: state, config: config)
++          }
++          return activity.id
++        }
++
++        Task {
++          var newState = self.makeContentState(from: state)
++          try await updateImages(state: state, newState: &newState)
++          await activity.update(
++            ActivityContent(state: newState, staleDate: self.staleDate(from: state))
++          )
++        }
++        return activity.id
++      }
++
++      do {
++        return try requestActivity(state: state, config: config)
++      } catch {
++        throw UnexpectedErrorException(error)
++      }
++    }
++
++    // End every running activity immediately. Mirrors Android's
++    // cancelNotification(fixed id): "stop whatever's active" with no id needed.
++    Function("endAllActivities") {
++      guard #available(iOS 16.2, *) else { throw UnsupportedOSException("16.2") }
++      Task {
++        for activity in Activity<LiveActivityAttributes>.activities {
++          await activity.end(nil, dismissalPolicy: .immediate)
++        }
+       }
+     }
+   }
+diff --git a/node_modules/expo-live-activity/ios/LiveActivityAttributes.swift b/node_modules/expo-live-activity/ios/LiveActivityAttributes.swift
+index f71c857..7da545c 100644
+--- a/node_modules/expo-live-activity/ios/LiveActivityAttributes.swift
++++ b/node_modules/expo-live-activity/ios/LiveActivityAttributes.swift
+@@ -9,10 +9,26 @@ struct LiveActivityAttributes: ActivityAttributes {
+     var progress: Double?
+     var imageName: String?
+     var dynamicIslandImageName: String?
++    // Overdue treatment. `overdue` is the app's server-truth flag; the widget
++    // ORs it with `context.isStale` (staleDate = the deadline) so the flip to
++    // the danger appearance happens on-device the moment the deadline passes,
++    // with no app process involved. The pre-baked overdue copy is what the
++    // widget swaps to on that native flip, before the app has a chance to
++    // push refreshed state.
++    var overdue: Bool?
++    var overdueTitle: String?
++    var overdueSubtitle: String?
++    // Start of the session (ms since epoch) so the progress bar can fill
++    // start→deadline instead of restarting from "now of last update".
++    var timerStartDateInMilliseconds: Double?
+   }
+ 
+   var name: String
+   var backgroundColor: String?
++  // Background swapped in when the activity is overdue (stale or flagged).
++  // Keeping both colors in the attributes means the danger flip is a pure
++  // re-render — no end+restart of the activity.
++  var overdueBackgroundColor: String?
+   var titleColor: String?
+   var subtitleColor: String?
+   var progressViewTint: String?

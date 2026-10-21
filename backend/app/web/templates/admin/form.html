@@ -1,0 +1,75 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{% if item %}Edit{% else %}New{% endif %} {{ view.name|title }} — Admin{% endblock title %}
+
+{% block admin_content %}
+<div class="admin-breadcrumb">
+    <a href="/admin/">Admin</a> / <a href="/admin/{{ view.name_plural }}">{{ view.name_plural|title }}</a> /
+    {% if item %}Edit{% else %}New{% endif %}
+</div>
+
+<div class="admin-page-header">
+    <h1 class="admin-page-title">{% if item %}Edit{% else %}New{% endif %} {{ view.name|title }}</h1>
+</div>
+
+<div class="admin-form">
+    <form method="post"
+          action="{% if item %}/admin/{{ view.name_plural }}/{{ item.id }}{% else %}/admin/{{ view.name_plural }}{% endif %}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        {% for key, label, field_type, choices in view.form_fields %}
+        <div class="form-group">
+            <label class="form-label" for="field-{{ key }}">{{ label }}</label>
+
+            {% if field_type == "select" and choices %}
+            <select name="{{ key }}" id="field-{{ key }}">
+                <option value="">— Select —</option>
+                {% for val, display in choices %}
+                <option value="{{ val }}"
+                    {% if item and item[key] is defined %}
+                        {% set current = item[key].value if item[key].__class__.__name__ != 'str' and item[key] is not none else item[key] %}
+                        {% if current == val %}selected{% endif %}
+                    {% endif %}
+                >{{ display }}</option>
+                {% endfor %}
+            </select>
+
+            {% elif field_type == "bool" %}
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" name="{{ key }}" value="true"
+                    {% if item and item[key] %}checked{% endif %}
+                    style="width: 18px; height: 18px;">
+                {{ label }}
+            </label>
+
+            {% elif field_type == "textarea" %}
+            <textarea name="{{ key }}" id="field-{{ key }}" rows="4"
+            >{% if item and item[key] %}{{ item[key] }}{% endif %}</textarea>
+
+            {% elif field_type == "datetime" %}
+            <input type="datetime-local" name="{{ key }}" id="field-{{ key }}" class="form-input"
+                {% if item and item[key] %}value="{{ item[key].strftime('%Y-%m-%dT%H:%M') }}"{% endif %}
+            >
+
+            {% elif field_type == "number" %}
+            <input type="number" name="{{ key }}" id="field-{{ key }}" class="form-input"
+                {% if item and item[key] is not none %}value="{{ item[key] }}"{% endif %}
+            >
+
+            {% else %}
+            <input type="text" name="{{ key }}" id="field-{{ key }}" class="form-input"
+                {% if item and item[key] %}value="{{ item[key] }}"{% endif %}
+            >
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-lg);">
+            <button type="submit" class="admin-btn admin-btn-primary">
+                {% if item %}Save Changes{% else %}Create{% endif %}
+            </button>
+            <a href="/admin/{{ view.name_plural }}" class="admin-btn admin-btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock admin_content %}

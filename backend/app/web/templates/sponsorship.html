@@ -1,0 +1,230 @@
+{% extends "base_web.html" %}
+
+{% block title %}
+{%- if state == "success" -%}
+Sponsorship Sent - Made It Home
+{%- elif state == "canceled" -%}
+Payment Cancelled - Made It Home
+{%- elif state == "not_found" -%}
+Link Not Found - Made It Home
+{%- else -%}
+Sponsor a Subscription - Made It Home
+{%- endif -%}
+{% endblock title %}
+
+{% block extra_css %}
+<style>
+    /* Auth-flow styles (OTP form + plan cards) for the known_recipient
+       state, scoped to #auth-form so they don't leak into the plain
+       inline-styled enter_recipient/success/canceled/not_found markup. */
+    .privacy-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        background: #F0FDF9;
+        border: 1px solid rgba(20, 184, 166, 0.3);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        margin-bottom: 28px;
+        font-size: 14px;
+        color: var(--dark);
+        line-height: 1.5;
+    }
+    .privacy-notice svg {
+        width: 18px;
+        height: 18px;
+        stroke: var(--primary);
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+    #auth-form .form-step { margin-bottom: 20px; }
+    #auth-form label { display: block; margin-bottom: 8px; color: var(--dark); font-weight: 500; }
+    #auth-form input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+    #auth-form input:focus { outline: none; border-color: var(--primary); }
+    #auth-form button {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: var(--radius-full);
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        box-shadow: var(--shadow-primary);
+    }
+    #auth-form button:hover { transform: translateY(-2px); }
+    #auth-form button:active { transform: scale(0.95); }
+    #auth-form button:disabled, #auth-form button.htmx-request {
+        background: var(--light-gray); color: var(--gray); cursor: not-allowed; transform: none; box-shadow: none;
+    }
+    #auth-form .btn-secondary {
+        background: var(--light-gray); color: var(--dark); box-shadow: none;
+    }
+    #auth-form .btn-secondary:hover { background: #dce1e3; box-shadow: none; transform: none; }
+    #auth-form .btn-sm { padding: 10px 20px; font-size: 14px; }
+    .success-icon {
+        width: 80px; height: 80px; margin: 0 auto 20px; background: var(--primary);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        animation: scaleIn 0.3s ease-out;
+    }
+    @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+    .success-icon svg { width: 40px; height: 40px; stroke: white; stroke-width: 3; }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+
+{# ===================== enter_recipient ===================== #}
+{% if state == "enter_recipient" %}
+<div style="max-width: 480px; margin: 60px auto; padding: 0 20px;">
+    <div style="text-align: center; margin-bottom: 32px;">
+        <div style="width: 80px; height: 80px; background: var(--gradient-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <ion-icon name="gift" style="font-size: 36px; color: white;"></ion-icon>
+        </div>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 8px;">Someone you care about wants to stay safe</h1>
+        <p style="color: var(--gray); font-size: 16px; line-height: 1.6;">Made It Home alerts a person's Circle of Trust when they don't check in on time. Your sponsorship gives them peace of mind.</p>
+    </div>
+
+    {% if error %}
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 20px; color: var(--danger); font-size: 14px;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form action="/sponsorships" method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        <div>
+            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 6px;">Recipient's Phone Number</label>
+            <input type="tel" name="recipient_phone" value="{{ recipient_phone }}" placeholder="+14155552671"
+                   required style="width: 100%; padding: 14px 16px; border: 2px solid #E5E7EB; border-radius: var(--radius-md); font-size: 16px; outline: none; transition: border-color 0.2s;"
+                   onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#E5E7EB'">
+        </div>
+
+        <div>
+            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 6px;">Your Phone Number</label>
+            <input type="tel" name="gifter_phone" placeholder="+14155552671" required
+                   style="width: 100%; padding: 14px 16px; border: 2px solid #E5E7EB; border-radius: var(--radius-md); font-size: 16px; outline: none; transition: border-color 0.2s;"
+                   onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#E5E7EB'">
+        </div>
+
+        <div>
+            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 10px;">Choose a Plan</label>
+            <div style="display: flex; gap: 12px;">
+                <label style="flex: 1; cursor: pointer;">
+                    <input type="radio" name="plan_type" value="monthly" checked style="display: none;" onchange="selectPlan(this)">
+                    <div class="plan-card plan-selected" id="plan-monthly" style="border: 2px solid var(--primary); border-radius: var(--radius-md); padding: 16px; text-align: center; transition: all 0.2s;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--dark);">$5</div>
+                        <div style="font-size: 14px; color: var(--gray);">per month</div>
+                    </div>
+                </label>
+                <label style="flex: 1; cursor: pointer;">
+                    <input type="radio" name="plan_type" value="annual" style="display: none;" onchange="selectPlan(this)">
+                    <div class="plan-card" id="plan-annual" style="border: 2px solid #E5E7EB; border-radius: var(--radius-md); padding: 16px; text-align: center; transition: all 0.2s; position: relative;">
+                        <div style="position: absolute; top: -10px; right: -10px; background: var(--gradient-primary); color: white; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-full);">BEST VALUE</div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--dark);">$48</div>
+                        <div style="font-size: 14px; color: var(--gray);">per year ($4/mo)</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 16px; background: var(--gradient-primary); color: white; border: none; border-radius: var(--radius-full); font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; box-shadow: var(--shadow-primary);">
+            Proceed to Payment
+        </button>
+    </form>
+</div>
+
+<script>
+function selectPlan(radio) {
+    document.querySelectorAll('.plan-card').forEach(card => {
+        card.style.borderColor = '#E5E7EB';
+    });
+    radio.parentElement.querySelector('.plan-card').style.borderColor = 'var(--primary)';
+}
+</script>
+
+{# ===================== known_recipient ===================== #}
+{% elif state == "known_recipient" %}
+<div style="max-width: 500px; margin: 40px auto; padding: 0 20px;">
+    <div style="text-align: center; margin-bottom: 28px;">
+        <div style="width: 80px; height: 80px; background: var(--gradient-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <svg fill="none" viewBox="0 0 24 24" style="width: 40px; height: 40px; stroke: white; stroke-width: 1.5;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1014.625 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 109.375 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+        </div>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--dark);">Sponsor {{ recipient_first_name }}'s subscription</h1>
+        <p style="color: var(--gray); font-size: 16px; line-height: 1.6; margin-top: 8px;">
+            Made It Home notifies {{ recipient_first_name }}'s Circle if they miss a check-in.
+            Your sponsorship keeps them covered.
+        </p>
+    </div>
+
+    <div class="privacy-notice">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+        <span>Sponsoring doesn't give you access to {{ recipient_first_name }}'s check-in data or location. Only their Circle members have access to that information.</span>
+    </div>
+
+    <div id="auth-flow">
+        {% include "fragments/sponsorship_auth_form.html" %}
+    </div>
+</div>
+
+{# ===================== success ===================== #}
+{% elif state == "success" %}
+<div style="max-width: 480px; margin: 80px auto; padding: 0 20px; text-align: center;">
+    <div style="width: 80px; height: 80px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+        <ion-icon name="checkmark-circle" style="font-size: 48px; color: var(--success);"></ion-icon>
+    </div>
+    <h1 style="font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 12px;">Sponsorship sent</h1>
+    <p style="color: var(--gray); font-size: 16px; margin-bottom: 8px;">
+        Your sponsorship has been purchased successfully.
+    </p>
+    {# recipient_name comes from a server-side share-code lookup, never the
+       URL — no phone/name rides in the Stripe-stored success_url. #}
+    {% if recipient_name %}
+    <p style="color: var(--dark); font-size: 16px; font-weight: 600; margin-bottom: 8px;">
+        {{ recipient_name }}'s subscription is ready.
+    </p>
+    {% endif %}
+    <p style="color: var(--gray); font-size: 14px; margin-bottom: 32px;">
+        The recipient will have access as soon as they sign in with their phone number.
+    </p>
+    <a href="{{ marketing_origin }}" style="display: inline-block; padding: 14px 32px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: var(--radius-full); font-weight: 700; font-size: 16px; box-shadow: var(--shadow-primary);">
+        Back to Home
+    </a>
+</div>
+
+{# ===================== canceled ===================== #}
+{% elif state == "canceled" %}
+<div style="max-width: 480px; margin: 80px auto; padding: 0 20px; text-align: center;">
+    <div style="width: 80px; height: 80px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+        <ion-icon name="close-circle" style="font-size: 48px; color: var(--danger);"></ion-icon>
+    </div>
+    <h1 style="font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 12px;">Payment Cancelled</h1>
+    <p style="color: var(--gray); font-size: 16px; margin-bottom: 32px;">
+        No charge was made. You can try again whenever you're ready.
+    </p>
+    <a href="{{ back_url }}" style="display: inline-block; padding: 14px 32px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: var(--radius-full); font-weight: 700; font-size: 16px; box-shadow: var(--shadow-primary);">
+        Try Again
+    </a>
+</div>
+
+{# ===================== not_found ===================== #}
+{% else %}
+<div style="max-width: 480px; margin: 80px auto; padding: 0 20px; text-align: center;">
+    <h1 style="font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 12px;">Link not found</h1>
+    <p style="color: var(--gray); font-size: 16px;">This sponsorship link is no longer valid.</p>
+</div>
+{% endif %}
+
+{% endblock content %}

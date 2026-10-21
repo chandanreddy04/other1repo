@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Made It Home - Design Themes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f7;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .theme {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .theme-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .component-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 10px 0;
+        }
+
+        .status-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1.5px solid;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        /* Theme 1: Neo-Brutalist */
+        .theme-1 .btn-primary {
+            background: #5e2bff;
+            color: white;
+            padding: 14px 28px;
+            border: 3px solid #000;
+            border-radius: 0;
+            font-weight: bold;
+            box-shadow: 4px 4px 0 #000;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .theme-1 .btn-primary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 #000;
+        }
+
+        .theme-1 .btn-secondary {
+            background: #00ff88;
+            color: #000;
+            padding: 14px 28px;
+            border: 3px solid #000;
+            border-radius: 0;
+            font-weight: bold;
+            box-shadow: 4px 4px 0 #000;
+            cursor: pointer;
+        }
+
+        .theme-1 .btn-danger {
+            background: #ff2e4c;
+            color: white;
+            padding: 14px 28px;
+            border: 3px solid #000;
+            border-radius: 0;
+            font-weight: bold;
+            box-shadow: 4px 4px 0 #000;
+            cursor: pointer;
+        }
+
+        .theme-1 .card {
+            background: #ffd93d;
+            border: 3px solid #000;
+            box-shadow: 6px 6px 0 #000;
+        }
+
+        .theme-1 .input-field {
+            border: 3px solid #000;
+            border-radius: 0;
+            background: white;
+        }
+
+        .theme-1 .status-active {
+            background: #00ff88;
+            padding: 8px 16px;
+            border: 2px solid #000;
+            font-weight: bold;
+        }
+
+        .theme-1 .status-warning {
+            background: #ffd93d;
+            padding: 8px 16px;
+            border: 2px solid #000;
+            font-weight: bold;
+        }
+
+        /* Theme 2: Soft Gradient */
+        .theme-2 .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .theme-2 .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .theme-2 .btn-secondary {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(250, 112, 154, 0.3);
+            cursor: pointer;
+        }
+
+        .theme-2 .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .theme-2 .card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .theme-2 .input-field {
+            border: 2px solid #e1e8f0;
+            border-radius: 15px;
+            background: white;
+        }
+
+        .theme-2 .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .theme-2 .status-active {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: #0a5f4a;
+            font-weight: 600;
+        }
+
+        .theme-2 .status-warning {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: #8b4513;
+            font-weight: 600;
+        }
+
+        /* Theme 3: Glassmorphism */
+        .theme-3 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-3::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+
+        .theme-3 .btn-primary {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 14px 32px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            font-weight: 600;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .theme-3 .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+        }
+
+        .theme-3 .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 14px 32px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .theme-3 .btn-danger {
+            background: rgba(244, 63, 94, 0.8);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 14px 32px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .theme-3 .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            color: white;
+        }
+
+        .theme-3 .input-field {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .theme-3 .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .theme-3 .status-active {
+            background: rgba(52, 211, 153, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(52, 211, 153, 0.5);
+            padding: 8px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .theme-3 .status-warning {
+            background: rgba(251, 191, 36, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            padding: 8px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .theme-3 .theme-description {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Theme 4: Playful Pop */
+        .theme-4 .btn-primary {
+            background: #FF6B6B;
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 100px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-4 .btn-primary:hover {
+            transform: scale(1.05) rotate(-2deg);
+        }
+
+        .theme-4 .btn-secondary {
+            background: #4ECDC4;
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 100px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .theme-4 .btn-secondary:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .theme-4 .btn-danger {
+            background: #FFE66D;
+            color: #2C3E50;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 100px;
+            font-weight: 700;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 230, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0); }
+        }
+
+        .theme-4 .card {
+            background: linear-gradient(45deg, #FFE66D, #FF6B6B);
+            border-radius: 25px;
+            position: relative;
+        }
+
+        .theme-4 .card::before {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: white;
+            border-radius: 23px;
+            z-index: 0;
+        }
+
+        .theme-4 .card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .theme-4 .input-field {
+            border: 3px solid #4ECDC4;
+            border-radius: 50px;
+            background: white;
+            padding-left: 20px;
+            font-weight: 500;
+        }
+
+        .theme-4 .input-field:focus {
+            outline: none;
+            border-color: #FF6B6B;
+            transform: scale(1.02);
+        }
+
+        .theme-4 .status-active {
+            background: #4ECDC4;
+            padding: 10px 24px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-4 .status-active::before {
+            content: '●';
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .theme-4 .status-warning {
+            background: #FFE66D;
+            padding: 10px 24px;
+            border-radius: 50px;
+            color: #2C3E50;
+            font-weight: 700;
+        }
+
+        /* Theme 5: Minimalist Trust */
+        .theme-5 .btn-primary {
+            background: #0A0E27;
+            color: white;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .theme-5 .btn-primary::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #0066FF;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .theme-5 .btn-primary:hover::after {
+            transform: scaleX(1);
+        }
+
+        .theme-5 .btn-secondary {
+            background: transparent;
+            color: #0A0E27;
+            padding: 16px 40px;
+            border: 1px solid #0A0E27;
+            border-radius: 8px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-5 .btn-secondary:hover {
+            background: #0A0E27;
+            color: white;
+        }
+
+        .theme-5 .btn-danger {
+            background: white;
+            color: #E53E3E;
+            padding: 16px 40px;
+            border: 1px solid #E53E3E;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-5 .btn-danger:hover {
+            background: #FFF5F5;
+        }
+
+        .theme-5 .card {
+            background: white;
+            border: 1px solid #E2E8F0;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .theme-5 .input-field {
+            border: 1px solid #CBD5E0;
+            border-radius: 4px;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .theme-5 .input-field:focus {
+            outline: none;
+            border-color: #0066FF;
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.05);
+        }
+
+        .theme-5 .status-active {
+            background: transparent;
+            padding: 8px 16px;
+            border: 1px solid #48BB78;
+            border-radius: 4px;
+            color: #22543D;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .theme-5 .status-warning {
+            background: #FFF5F5;
+            padding: 8px 16px;
+            border-left: 4px solid #E53E3E;
+            color: #742A2A;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        /* Status dots */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.active {
+            background: #48BB78;
+            box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.2);
+        }
+
+        .status-dot.warning {
+            background: #F6AD55;
+            box-shadow: 0 0 0 4px rgba(246, 173, 85, 0.2);
+        }
+
+        .status-dot.danger {
+            background: #FC8181;
+            box-shadow: 0 0 0 4px rgba(252, 129, 129, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Made It Home - Design Theme Options</h1>
+        <p style="color: #666; margin-top: 10px;">5 distinct themes for a college safety app</p>
+    </div>
+
+    <div class="themes-grid">
+        <!-- Theme 1: Neo-Brutalist -->
+        <div class="theme theme-1">
+            <div class="theme-title">
+                <span style="font-size: 30px;">🎨</span>
+                Theme 1: Neo-Brutalist
+            </div>
+            <p class="theme-description">
+                Bold, unapologetic design with heavy borders and stark contrasts. Makes a statement with its confidence - perfect for Gen Z who appreciate authenticity and standing out.
+            </p>
+
+            <div class="color-palette">
+                <div class="color-swatch" style="background: #5e2bff;"></div>
+                <div class="color-swatch" style="background: #00ff88;"></div>
+                <div class="color-swatch" style="background: #ff2e4c;"></div>
+                <div class="color-swatch" style="background: #ffd93d;"></div>
+                <div class="color-swatch" style="background: #000;"></div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="button-row">
+                    <button class="btn-primary">Check In Safe</button>
+                    <button class="btn-secondary">I'm OK!</button>
+                </div>
+                <div class="button-row">
+                    <button class="btn-danger">EMERGENCY</button>
+                </div>
+
+                <div class="card">
+                    <strong>Active Check-in</strong><br>
+                    📍 Campus Library - 2h remaining
+                </div>
+
+                <input type="text" class="input-field" placeholder="Where are you going?">
+
+                <div class="status-row">
+                    <span class="status-active">ACTIVE</span>
+                    <span class="status-warning">ALERT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 2: Soft Gradient -->
+        <div class="theme theme-2">
+            <div class="theme-title">
+                <span style="font-size: 30px;">🌈</span>
+                Theme 2: Soft Gradient
+            </div>
+            <p class="theme-description">
+                Smooth gradients and soft shadows create a calming, approachable interface. The flowing colors suggest safety and comfort while maintaining a modern aesthetic.
+            </p>
+
+            <div class="color-palette">
+                <div class="color-swatch" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+                <div class="color-swatch" style="background: linear-gradient(135deg, #fa709a, #fee140);"></div>
+                <div class="color-swatch" style="background: linear-gradient(135deg, #84fab0, #8fd3f4);"></div>
+                <div class="color-swatch" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="button-row">
+                    <button class="btn-primary">Check In Safe</button>
+                    <button class="btn-secondary">Quick Update</button>
+                </div>
+                <div class="button-row">
+                    <button class="btn-danger">Need Help</button>
+                </div>
+
+                <div class="card">
+                    <strong>You're Protected</strong><br>
+                    ✨ Active monitoring until 11:30 PM
+                </div>
+
+                <input type="text" class="input-field" placeholder="Share your location...">
+
+                <div class="status-row">
+                    <span class="status-active">Safe</span>
+                    <span class="status-warning">Check Soon</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 3: Glassmorphism -->
+        <div class="theme theme-3">
+            <div class="theme-title" style="color: white;">
+                <span style="font-size: 30px;">❄️</span>
+                Theme 3: Glassmorphism
+            </div>
+            <p class="theme-description">
+                Translucent layers and blurred backgrounds create depth and sophistication. Premium feel that suggests transparency and trust - you can see through to safety.
+            </p>
+
+            <div class="color-palette">
+                <div class="color-swatch" style="background: rgba(255,255,255,0.3); border: 1px solid white;"></div>
+                <div class="color-swatch" style="background: rgba(102,126,234,0.5);"></div>
+                <div class="color-swatch" style="background: rgba(118,75,162,0.5);"></div>
+                <div class="color-swatch" style="background: rgba(244,63,94,0.5);"></div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="button-row">
+                    <button class="btn-primary">Start Check-in</button>
+                    <button class="btn-secondary">View Friends</button>
+                </div>
+                <div class="button-row">
+                    <button class="btn-danger">SOS</button>
+                </div>
+
+                <div class="card">
+                    <strong>Crystal Clear Safety</strong><br>
+                    🛡️ Your circle knows you're safe
+                </div>
+
+                <input type="text" class="input-field" placeholder="Enter destination...">
+
+                <div class="status-row">
+                    <span class="status-active">Online</span>
+                    <span class="status-warning">Pending</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 4: Playful Pop -->
+        <div class="theme theme-4">
+            <div class="theme-title">
+                <span style="font-size: 30px;">🎉</span>
+                Theme 4: Playful Pop
+            </div>
+            <p class="theme-description">
+                Energetic and friendly with bouncy animations and bright colors. Makes safety feel less intimidating and more like a caring friend checking in on you.
+            </p>
+
+            <div class="color-palette">
+                <div class="color-swatch" style="background: #FF6B6B;"></div>
+                <div class="color-swatch" style="background: #4ECDC4;"></div>
+                <div class="color-swatch" style="background: #FFE66D;"></div>
+                <div class="color-swatch" style="background: #95E1D3;"></div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="button-row">
+                    <button class="btn-primary">I'm Good! 👍</button>
+                    <button class="btn-secondary">Check Friends</button>
+                </div>
+                <div class="button-row">
+                    <button class="btn-danger">Get Me Home!</button>
+                </div>
+
+                <div class="card">
+                    <strong>Hey! Check-in Active</strong><br>
+                    🎯 Library Study Sesh - 2h left
+                </div>
+
+                <input type="text" class="input-field" placeholder="Where to? 📍">
+
+                <div class="status-row">
+                    <span class="status-active">Vibing</span>
+                    <span class="status-warning">Heads Up!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 5: Minimalist Trust -->
+        <div class="theme theme-5">
+            <div class="theme-title">
+                <span style="font-size: 30px;">⚡</span>
+                Theme 5: Minimalist Trust
+            </div>
+            <p class="theme-description">
+                Clean, professional design that inspires confidence through simplicity. Every element has purpose, creating a sense of reliability and institutional trust.
+            </p>
+
+            <div class="color-palette">
+                <div class="color-swatch" style="background: #0A0E27;"></div>
+                <div class="color-swatch" style="background: #0066FF;"></div>
+                <div class="color-swatch" style="background: #48BB78;"></div>
+                <div class="color-swatch" style="background: #E53E3E;"></div>
+                <div class="color-swatch" style="background: #F7FAFC; border: 1px solid #E2E8F0;"></div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="button-row">
+                    <button class="btn-primary">Confirm Safety</button>
+                    <button class="btn-secondary">Options</button>
+                </div>
+                <div class="button-row">
+                    <button class="btn-danger">Alert Contacts</button>
+                </div>
+
+                <div class="card">
+                    <strong>Status: Protected</strong><br>
+                    Location tracking active • Ends 23:00
+                </div>
+
+                <input type="text" class="input-field" placeholder="Destination">
+
+                <div class="status-row">
+                    <span class="status-dot active"></span>
+                    <span class="status-active">SECURE</span>
+                    <span class="status-warning">REVIEW REQUIRED</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; padding: 20px;">
+        <h2>Theme Characteristics</h2>
+        <div style="max-width: 800px; margin: 20px auto; text-align: left; line-height: 1.8;">
+            <p><strong>Theme 1 (Neo-Brutalist):</strong> Bold, confident, unapologetic. Appeals to students who want to stand out.</p>
+            <p><strong>Theme 2 (Soft Gradient):</strong> Calming, approachable, modern. Creates emotional comfort.</p>
+            <p><strong>Theme 3 (Glassmorphism):</strong> Premium, sophisticated, transparent. Suggests clarity and trust.</p>
+            <p><strong>Theme 4 (Playful Pop):</strong> Friendly, energetic, approachable. Makes safety feel less serious.</p>
+            <p><strong>Theme 5 (Minimalist Trust):</strong> Professional, reliable, institutional. Maximum clarity and trust.</p>
+        </div>
+    </div>
+</body>
+</html>

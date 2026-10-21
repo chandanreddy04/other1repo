@@ -1,0 +1,142 @@
+<!-- Unified auth form with phone and OTP in same view -->
+<div id="auth-form">
+    <!-- Phone number section -->
+    <div id="phone-section">
+        <p class="text-muted mb-md" style="font-size: 14px; text-align: center;">
+            We'll text you a code to verify your number
+        </p>
+        <form hx-post="/htmx/auth/request-otp"
+              hx-target="#auth-form"
+              hx-swap="outerHTML">
+            {% if allow_immediate %}
+            <input type="hidden" name="force_resend" value="true">
+            {% endif %}
+            {% if next_url %}
+            <input type="hidden" name="next_url" value="{{ next_url }}">
+            {% endif %}
+            {% if show_otp %}
+            <input type="hidden" name="current_phone" value="{{ phone_number }}">
+            {% endif %}
+            <div class="form-group">
+                <div style="display: flex; border: 3px solid var(--primary); border-radius: 50px; overflow: hidden; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div style="padding: 16px 20px; background: #F8FAFB; border-right: 1px solid #ECF0F1; display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 18px;">🇺🇸</span>
+                        <span style="font-size: 16px; font-weight: 500; color: var(--dark);">+1</span>
+                    </div>
+                    <input type="hidden" id="country-code" name="country_code" value="+1">
+                    <input type="tel"
+                           id="phone-input"
+                           name="phone_number"
+                           placeholder="(555) 123-4567"
+                           style="flex: 1; border: none; padding: 16px 20px; font-size: 16px; font-weight: 500; outline: none; background: transparent;"
+                           maxlength="14"
+                           value="{{ phone_value|default('') }}"
+                           {% if show_otp %}disabled{% endif %}
+                           required
+                           autofocus>
+                </div>
+            </div>
+
+            {% if not show_otp %}
+            {% include 'fragments/sms_consent.html' %}
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top: 16px;">
+                Get Verification Code
+            </button>
+            {% else %}
+            <button type="button"
+                    id="change-phone-btn"
+                    class="btn btn-secondary btn-block"
+                    onclick="enablePhoneEdit()">
+                Change Phone Number
+            </button>
+            <button type="submit"
+                    id="submit-phone-btn"
+                    class="btn btn-primary btn-block"
+                    style="display: none;">
+                Get Verification Code
+            </button>
+            {% endif %}
+        </form>
+
+    </div>
+
+    <!-- OTP section (shown after phone submitted) -->
+    {% if show_otp %}
+    <div id="otp-section" style="margin-top: 2rem;">
+        <form hx-post="/htmx/auth/verify-otp"
+              hx-target="#auth-form"
+              hx-swap="outerHTML">
+            <input type="hidden" name="phone_number" value="{{ phone_number }}">
+            <input type="hidden" name="next_url" value="{{ next_url|default('') }}">
+
+            <div class="form-group">
+                <label class="form-label">Enter your 6-digit code</label>
+                <input type="text"
+                       name="otp_code"
+                       class="form-input{% if error_message %} error{% endif %}"
+                       placeholder="000000"
+                       maxlength="6"
+                       pattern="[0-9]{6}"
+                       inputmode="numeric"
+                       autocomplete="one-time-code"
+                       autofocus
+                       required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                Verify Code
+            </button>
+        </form>
+
+        <div class="text-center mt-md" id="resend-container">
+            {% if resend_wait_seconds and resend_wait_seconds > 0 %}
+            <p class="text-muted" id="resend-timer">
+                Resend code in <span id="countdown">{{ resend_wait_seconds }}</span> seconds
+            </p>
+            <button id="resend-btn"
+                    hx-post="/htmx/auth/request-otp"
+                    hx-target="#auth-form"
+                    hx-swap="outerHTML"
+                    hx-vals='{{ {"phone_number": phone_number, "next_url": next_url or "", "is_resend": true, "keep_otp_visible": true}|tojson }}'
+                    class="btn btn-sm btn-secondary"
+                    disabled
+                    style="display: none;">
+                Resend Code
+            </button>
+            <script>
+                let seconds = {{ resend_wait_seconds }};
+                const countdown = document.getElementById('countdown');
+                const resendBtn = document.getElementById('resend-btn');
+                const resendTimer = document.getElementById('resend-timer');
+
+                const timer = setInterval(() => {
+                    seconds--;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        resendTimer.style.display = 'none';
+                        resendBtn.style.display = 'inline-block';
+                        resendBtn.disabled = false;
+                    } else {
+                        countdown.textContent = seconds;
+                    }
+                }, 1000);
+            </script>
+            {% else %}
+            <button hx-post="/htmx/auth/request-otp"
+                    hx-target="#auth-form"
+                    hx-swap="outerHTML"
+                    hx-vals='{{ {"phone_number": phone_number, "next_url": next_url or "", "is_resend": true, "keep_otp_visible": true}|tojson }}'
+                    class="btn btn-sm btn-secondary">
+                Resend Code
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if error_message %}
+    <p style="color: var(--danger); margin-top: 1rem; text-align: center;">{{ error_message }}</p>
+    {% endif %}
+</div>
+
+{% include 'fragments/auth_js.html' %}

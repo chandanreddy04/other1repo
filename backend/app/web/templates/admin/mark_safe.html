@@ -1,0 +1,43 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Mark safe on their behalf — Admin{% endblock title %}
+
+{% block admin_content %}
+{# Double-confirmation page (owner decision 2026-07-19): this action messages
+   real people (the all-clear broadcast), so it is a deliberate two-step —
+   consequence education + an explicit verification acknowledgment, enforced
+   server-side (the POST rejects without it). #}
+<h1 class="admin-page-title">Mark safe on {{ owner_name }}'s behalf?</h1>
+
+<div style="max-width: 640px;">
+    <p style="margin-top: 16px; color: #374151;">
+        This completes the session as if {{ owner_name }} checked in
+        themselves: outstanding alerts are resolved and
+        <strong>every Circle member is messaged the all-clear</strong>.
+        Only proceed if you have directly verified {{ owner_name }} is safe.
+    </p>
+    <p style="margin-top: 12px; color: #374151;">
+        If nobody has verified they're safe, use
+        <strong>Close as false alarm</strong> instead — it closes the session
+        without messaging the Circle.
+    </p>
+
+    <form method="post" action="/admin/sessions/{{ session_id }}/mark-safe"
+          style="margin-top: 24px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label style="display: flex; align-items: flex-start; gap: 8px; color: #111827; font-weight: 500;">
+            <input type="checkbox" name="verified_safe" value="yes" required
+                   style="margin-top: 3px;">
+            I have directly verified that {{ owner_name }} is safe
+        </label>
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+            <button type="submit" class="admin-btn"
+                    style="background:#0d9488; border-color:#0d9488;">
+                Send all-clear and mark safe
+            </button>
+            <a href="/admin/sessions/{{ session_id }}" class="admin-btn"
+               style="background:#6b7280; border-color:#6b7280;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock admin_content %}

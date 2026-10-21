@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1085424888592",
+    "project_id": "made-it-home-beffb",
+    "storage_bucket": "made-it-home-beffb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1085424888592:android:cc2f1233f33d9524151395",
+        "android_client_info": {
+          "package_name": "com.madeithome.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaneMN2A2AKWKbhV0C6btyYVCBRsK0fxk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

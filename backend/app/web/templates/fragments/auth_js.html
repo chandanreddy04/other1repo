@@ -1,0 +1,78 @@
+<script>
+(function() {
+    // Phone number formatting for US numbers only
+    function formatPhoneNumber(value) {
+        let digits = value.replace(/\D/g, '');
+        let formattedValue = '';
+
+        // US formatting: (555) 123-4567
+        if (digits.length > 0) {
+            if (digits.length <= 3) {
+                formattedValue = `(${digits}`;
+            } else if (digits.length <= 6) {
+                formattedValue = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+            } else {
+                formattedValue = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+            }
+        }
+
+        return formattedValue || digits;
+    }
+
+    // Make enablePhoneEdit available globally since it's called from onclick
+    window.enablePhoneEdit = function() {
+        const phoneInput = document.getElementById('phone-input');
+        const changeBtn = document.getElementById('change-phone-btn');
+        const submitBtn = document.getElementById('submit-phone-btn');
+        const otpSection = document.getElementById('otp-section');
+
+        // Enable phone input
+        phoneInput.disabled = false;
+        phoneInput.focus();
+
+        // Hide OTP section
+        if (otpSection) {
+            otpSection.style.display = 'none';
+        }
+
+        // Swap buttons
+        changeBtn.style.display = 'none';
+        submitBtn.style.display = 'block';
+    }
+
+    const phoneInput = document.getElementById('phone-input');
+
+    if (phoneInput) {
+        // Format on input
+        phoneInput.addEventListener('input', function(e) {
+            e.target.value = formatPhoneNumber(e.target.value);
+        });
+
+        // Format initial value if present (always format, even when disabled)
+        if (phoneInput.value) {
+            phoneInput.value = formatPhoneNumber(phoneInput.value);
+        }
+    }
+
+    // On form submit, combine country code with phone number
+    const phoneForm = document.querySelector('#phone-section form');
+    if (phoneForm) {
+        phoneForm.addEventListener('submit', function(e) {
+            const phoneNumber = document.getElementById('phone-input').value.replace(/\D/g, '');
+
+            // Create hidden input with full phone number
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'full_phone_number';
+            hiddenInput.value = '+1' + phoneNumber;
+            this.appendChild(hiddenInput);
+        });
+    }
+
+    // Auto-focus OTP input if visible
+    const otpInput = document.querySelector('#otp-section input[name="otp_code"]');
+    if (otpInput) {
+        otpInput.focus();
+    }
+})();
+</script>

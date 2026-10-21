@@ -1,0 +1,82 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ view.name|title }} — Admin{% endblock title %}
+
+{% block admin_content %}
+<div class="admin-breadcrumb">
+    <a href="/admin/">Admin</a> / <a href="/admin/{{ view.name_plural }}">{{ view.name_plural|title }}</a> / Detail
+</div>
+
+<div class="admin-page-header">
+    <h1 class="admin-page-title">{{ view.name|title }} Detail</h1>
+    {% if not view.read_only %}
+    <div class="admin-actions">
+        <a href="/admin/{{ view.name_plural }}/{{ item.id }}/edit" class="admin-btn admin-btn-primary">
+            <ion-icon name="create-outline"></ion-icon> Edit
+        </a>
+        <form action="/admin/{{ view.name_plural }}/{{ item.id }}/delete" method="post"
+              onsubmit="return confirm('Delete this {{ view.name }}? This cannot be undone.')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="admin-btn admin-btn-danger">
+                <ion-icon name="trash-outline"></ion-icon> Delete
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<div class="admin-detail">
+    <div class="admin-detail-grid">
+        <div class="admin-detail-label">ID</div>
+        <div class="admin-detail-value" style="font-family: monospace; font-size: 13px;">{{ item.id }}</div>
+
+        {% for col in fields %}
+        <div class="admin-detail-label">{{ col.label }}</div>
+        <div class="admin-detail-value">
+            {% set val = view.get_cell_value(item, col) %}
+            {% if val in ['active', 'completed', 'Yes'] %}
+            <span class="badge badge-active">{{ val }}</span>
+            {% elif val in ['pending', 'sent'] %}
+            <span class="badge badge-pending">{{ val }}</span>
+            {% elif val in ['missed', 'failed', 'panic', 'sos', 'blocked', 'No'] %}
+            <span class="badge badge-emergency">{{ val }}</span>
+            {% else %}
+            {{ val }}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if view.detail_extra_template %}
+{% include view.detail_extra_template %}
+{% endif %}
+
+{% for section in related_sections %}
+<div class="admin-related-section" style="margin-top: 32px;">
+    <h2 class="admin-page-title" style="font-size: 18px;">
+        {{ section.config.title }} ({{ section.rows|length }})
+    </h2>
+    {% if section.rows %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    {% for col in section.config.columns %}<th>{{ col.label }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in section.rows %}
+                <tr>
+                    {% for col in section.config.columns %}<td>{{ view.get_cell_value(row, col) }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: #6b7280; margin-top: 8px;">{{ section.config.empty_text }}</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock admin_content %}

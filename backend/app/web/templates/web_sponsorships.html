@@ -1,0 +1,108 @@
+{% extends "base_web.html" %}
+
+{% block title %}Manage Sponsorships - Made It Home{% endblock title %}
+
+{% block body %}
+<div class="container" style="max-width: 560px; margin-top: 40px; margin-bottom: 40px;">
+    <div class="text-center mb-lg">
+        <h1 style="font-size: 32px; font-weight: 700; color: var(--dark); margin-bottom: 8px;">
+            Manage your sponsorships
+        </h1>
+        <p class="text-muted" style="font-size: 15px;">
+            Made It Home
+        </p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger mb-md" style="background: var(--danger); color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="card" style="background: white; padding: 28px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);">
+
+    {# ----- phone form ----- #}
+    {% if stage == "phone" %}
+        <p style="color: var(--dark); margin-bottom: 16px; line-height: 1.5;">
+            Enter the phone number you used to subscribe. We'll text you a link to manage your subscriptions — cancel, update your card, or view invoices.
+        </p>
+        <form method="POST" action="/sponsorships/sign-in-links" novalidate>
+            <div class="form-group">
+                <label class="form-label" for="phone-input">Phone number</label>
+                <input type="tel"
+                       id="phone-input"
+                       name="phone_number"
+                       class="form-input"
+                       placeholder="(555) 123-4567"
+                       value="{{ phone_value|default('') }}"
+                       required
+                       autofocus>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+                Text me the link
+            </button>
+        </form>
+
+    {# ----- magic-link sent ----- #}
+    {% elif stage == "sent" %}
+        <div style="text-align: center;">
+            <ion-icon name="mail-outline" style="font-size: 56px; color: var(--primary);"></ion-icon>
+            <h2 style="font-size: 22px; color: var(--dark); margin: 12px 0;">
+                Check your texts
+            </h2>
+            <p style="color: var(--dark); line-height: 1.6;">
+                If <strong>{{ display_phone }}</strong> is the number on your
+                Stripe customer record, we just sent a link. It expires in
+                10 minutes.
+            </p>
+            <p class="text-muted" style="font-size: 14px; margin-top: 16px;">
+                Didn't receive it? <a href="/sponsorships">Try again</a>.
+            </p>
+        </div>
+
+    {# ----- magic link opened: one button. A GET never consumes the
+         one-time token (link previewers fetch it); this POST does. No
+         action attribute — the form posts back to this same
+         /sponsorships/portal/{token} URL, so the token is never
+         reflected into the page. ----- #}
+    {% elif stage == "open" %}
+        <div style="text-align: center;">
+            <ion-icon name="card-outline" style="font-size: 56px; color: var(--primary);"></ion-icon>
+            <form method="POST" style="margin-top: 16px;">
+                <button type="submit" class="btn btn-primary btn-block">
+                    Open billing portal
+                </button>
+            </form>
+        </div>
+
+    {# ----- post-click: no Stripe customer for this phone ----- #}
+    {% elif stage == "not_found" %}
+        <div style="text-align: center;">
+            <ion-icon name="alert-circle-outline" style="font-size: 56px; color: var(--warning);"></ion-icon>
+            <h2 style="font-size: 22px; color: var(--dark); margin: 12px 0;">
+                No subscriptions found
+            </h2>
+            <p style="color: var(--dark); line-height: 1.6;">
+                We don't have any Stripe billing records for
+                <strong>{{ display_phone }}</strong>. If you subscribed with
+                a different number, <a href="/sponsorships">try that one</a>.
+            </p>
+        </div>
+
+    {# ----- back from Stripe portal ----- #}
+    {% elif stage == "saved" %}
+        <div style="text-align: center;">
+            <ion-icon name="checkmark-circle" style="font-size: 56px; color: var(--primary);"></ion-icon>
+            <h2 style="font-size: 22px; color: var(--dark); margin: 12px 0;">
+                Changes saved
+            </h2>
+            <p style="color: var(--dark); line-height: 1.6;">
+                Any changes you made in Stripe's billing portal are now
+                live. You can close this tab.
+            </p>
+        </div>
+    {% endif %}
+
+    </div>
+</div>
+{% endblock body %}

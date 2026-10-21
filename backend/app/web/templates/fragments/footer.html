@@ -1,0 +1,64 @@
+<!-- App Download Footer Fragment -->
+<footer style="background: linear-gradient(135deg, #F8FAFB 0%, #E6F4F1 100%); border-top: 1px solid rgba(20, 184, 166, 0.2); padding: 40px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <h3 style="font-size: 24px; font-weight: 700; color: var(--dark); margin-bottom: 24px;">
+            Want someone to have your back?
+        </h3>
+
+        <div style="max-width: 440px; margin: 0 auto;">
+            <ul style="text-align: left; list-style: none; padding: 0; color: var(--dark); font-size: 15px; line-height: 1.8; margin-bottom: 28px;">
+                <li style="display: flex; align-items: start; gap: 10px; margin-bottom: 10px;">
+                    <ion-icon name="checkmark-circle" style="color: var(--primary); font-size: 20px; flex-shrink: 0; margin-top: 2px;"></ion-icon>
+                    <span>Set a return time before you leave</span>
+                </li>
+                <li style="display: flex; align-items: start; gap: 10px; margin-bottom: 10px;">
+                    <ion-icon name="checkmark-circle" style="color: var(--primary); font-size: 20px; flex-shrink: 0; margin-top: 2px;"></ion-icon>
+                    <span>One tap if you need help</span>
+                </li>
+                <li style="display: flex; align-items: start; gap: 10px; margin-bottom: 10px;">
+                    <ion-icon name="checkmark-circle" style="color: var(--primary); font-size: 20px; flex-shrink: 0; margin-top: 2px;"></ion-icon>
+                    <span>Your Circle knows where to look if something goes wrong</span>
+                </li>
+                <li style="display: flex; align-items: start; gap: 10px;">
+                    <ion-icon name="checkmark-circle" style="color: var(--primary); font-size: 20px; flex-shrink: 0; margin-top: 2px;"></ion-icon>
+                    <span>Works even when your phone is in your pocket</span>
+                </li>
+            </ul>
+        </div>
+
+        <div style="display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
+            <a href="https://apps.apple.com/app/id6787024225" class="app-store-btn" style="display: inline-block;">
+                <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&releaseDate=1276560000"
+                     alt="Download on the App Store"
+                     width="144"
+                     height="48"
+                     style="height: 48px; border-radius: 8px;">
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.madeithome.app" class="app-store-btn" style="display: inline-block;">
+                <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                     alt="Get it on Google Play"
+                     style="height: 70px; margin: -11px -14px;">
+            </a>
+        </div>
+
+        <!-- Footer Note -->
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+            <p style="color: var(--gray); font-size: 14px; margin-bottom: 12px;">
+                © {{ current_year|default('2024') }} Made It Home. Keeping loved ones safe, one check-in at a time.
+            </p>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <a href="https://www.madeithomeapp.com/terms" style="color: var(--gray); font-size: 13px; text-decoration: none; transition: color 0.2s;">
+                    Terms of Service
+                </a>
+                <span style="color: var(--gray); font-size: 13px;">•</span>
+                <a href="https://www.madeithomeapp.com/privacy" style="color: var(--gray); font-size: 13px; text-decoration: none; transition: color 0.2s;">
+                    Privacy Policy
+                </a>
+                <span style="color: var(--gray); font-size: 13px;">•</span>
+                <a href="mailto:support@madeithomeapp.com" style="color: var(--gray); font-size: 13px; text-decoration: none; transition: color 0.2s;">
+                    Contact Support
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>

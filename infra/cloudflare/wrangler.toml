@@ -1,0 +1,32 @@
+name = "madeithome-failover"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[kv_namespaces]]
+binding = "FAILOVER_KV"
+id = ""  # Set after `wrangler kv:namespace create FAILOVER_KV`
+
+# --- Non-secret env vars (commit-safe) ---
+# Per-secret values go in via `wrangler secret put NAME`. See worker.js
+# header for the full list of expected env vars. Defaults below match
+# the AWS deploy as the primary target.
+#
+# Scope: this is a SINGLE worker deployment (account-level) that monitors
+# PRODUCTION's health endpoint. If a separate staging-failover worker is
+# ever needed, either (a) deploy a second worker with its own
+# wrangler.toml, or (b) split this file into [env.staging]/[env.production]
+# sections and pass `--env` to wrangler.
+[vars]
+TARGET_CLOUD = "aws"
+HEALTH_URL = "https://app.madeithomeapp.com/health/ready"
+AWS_RDS_REGION = "us-east-2"
+AWS_ECS_REGION = "us-east-2"
+
+# Wrangler secrets (set via `wrangler secret put NAME`, never committed):
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+#   AWS_RDS_REPLICA_ID, AWS_ECS_CLUSTER, AWS_ECS_SERVICE, AWS_FAILOVER_ALB_DNS
+#   DNS_API_TOKEN, DNS_ZONE_ID, DNS_RECORD_ID
+#   SLACK_WEBHOOK_URL                (optional)

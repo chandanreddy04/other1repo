@@ -1,0 +1,91 @@
+<div class="admin-table-wrap">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                {% for col in view.columns %}
+                <th>
+                    {% if col.sortable %}
+                    <a hx-get="/admin/{{ view.name_plural }}/htmx/table?sort={{ col.key }}&sort_dir={% if sort == col.key and sort_dir == 'asc' %}desc{% else %}asc{% endif %}&search={{ search }}"
+                       hx-target="#table-container"
+                       hx-include="[name^='filter_']"
+                       style="cursor: pointer;">
+                        {{ col.label }}
+                        {% if sort == col.key %}
+                            {% if sort_dir == 'asc' %}↑{% else %}↓{% endif %}
+                        {% endif %}
+                    </a>
+                    {% else %}
+                        {{ col.label }}
+                    {% endif %}
+                </th>
+                {% endfor %}
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr{% if view.row_class %} class="{{ view.row_class(item) }}"{% endif %}>
+                {% for col in view.columns %}
+                <td>
+                    {% if col.link_to_detail %}
+                    <a href="/admin/{{ view.name_plural }}/{{ item.id }}">{{ view.get_cell_value(item, col) }}</a>
+                    {% else %}
+                    {% set val = view.get_cell_value(item, col) %}
+                    {% if val in ['active', 'completed', 'Yes'] %}
+                    <span class="badge badge-active">{{ val }}</span>
+                    {% elif val in ['pending', 'sent'] %}
+                    <span class="badge badge-pending">{{ val }}</span>
+                    {% elif val in ['missed', 'failed', 'panic', 'sos', 'blocked', 'No'] %}
+                    <span class="badge badge-emergency">{{ val }}</span>
+                    {% else %}
+                    {{ val }}
+                    {% endif %}
+                    {% endif %}
+                </td>
+                {% endfor %}
+                <td>
+                    <div class="admin-actions">
+                        <a href="/admin/{{ view.name_plural }}/{{ item.id }}" class="admin-btn admin-btn-outline" title="View">
+                            <ion-icon name="eye-outline"></ion-icon>
+                        </a>
+                        {% if not view.read_only %}
+                        <a href="/admin/{{ view.name_plural }}/{{ item.id }}/edit" class="admin-btn admin-btn-outline" title="Edit">
+                            <ion-icon name="create-outline"></ion-icon>
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{{ view.columns|length + 1 }}" style="text-align: center; padding: var(--spacing-xl); color: var(--gray);">
+                    No {{ view.name_plural }} found
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if total > 0 %}
+    <div class="admin-pagination">
+        <span>Showing {{ ((page - 1) * view.page_size) + 1 }}–{{ [page * view.page_size, total]|min }} of {{ total }}</span>
+        <div class="admin-pagination-links">
+            {% if page > 1 %}
+            <a hx-get="/admin/{{ view.name_plural }}/htmx/table?page={{ page - 1 }}&search={{ search }}&sort={{ sort }}&sort_dir={{ sort_dir }}"
+               hx-target="#table-container"
+               hx-include="[name^='filter_']">
+                ← Prev
+            </a>
+            {% endif %}
+            <span class="current-page">{{ page }}</span>
+            {% if page < total_pages %}
+            <a hx-get="/admin/{{ view.name_plural }}/htmx/table?page={{ page + 1 }}&search={{ search }}&sort={{ sort }}&sort_dir={{ sort_dir }}"
+               hx-target="#table-container"
+               hx-include="[name^='filter_']">
+                Next →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

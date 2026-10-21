@@ -1,0 +1,26 @@
+{# SMS consent disclosure for Twilio A2P 10DLC. Render inside any <form> that
+   collects a phone number for OTP, before the submit button. The `required`
+   checkbox hard-gates submission until the user actively opts in.
+   Keep copy textually identical to SMS_CONSENT_COPY in
+   mobile/constants/config.ts. See docs/twilio-a2p-consent.md. #}
+<div style="margin-top: 16px; text-align: left;">
+    <!-- Prominent no-sell / no-spam promise (standalone, not the opt-in) -->
+    <p style="display: flex; align-items: flex-start; gap: 8px; background: #FAFBFC; border: 1px solid #ECF0F1; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--dark); font-weight: 500; line-height: 1.45; margin: 0 0 12px;">
+        <ion-icon name="shield-checkmark" style="font-size: 18px; color: var(--primary); flex-shrink: 0; margin-top: 1px;"></ion-icon>
+        <span>We never sell your number and never send spam &mdash; you&rsquo;ll only ever get texts tied to relevant activity in the app.</span>
+    </p>
+
+    <!-- Consent checkbox: the explicit opt-in (must be actively checked) -->
+    <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--gray); line-height: 1.5; cursor: pointer;">
+        <input type="checkbox" name="sms_consent" required style="margin-top: 3px; flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--primary);">
+        <span>I agree to receive automated text messages from Made It Home at the number above: sign-in codes, check-in and safety alerts, referrals &amp; billing. Message frequency varies, and message &amp; data rates may apply.</span>
+    </label>
+
+    <!-- Informational HELP/STOP + Terms/Privacy -->
+    <p style="font-size: 12px; color: var(--gray); text-align: center; line-height: 1.5; margin: 12px 0 0;">
+        Text HELP for assistance with the app or STOP to cancel anytime. By continuing, you agree to our
+        <a href="https://www.madeithomeapp.com/terms" style="color: var(--primary); text-decoration: none;">Terms</a>
+        and
+        <a href="https://www.madeithomeapp.com/privacy" style="color: var(--primary); text-decoration: none;">Privacy Policy</a>.
+    </p>
+</div>

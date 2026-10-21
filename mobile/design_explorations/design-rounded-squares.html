@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Made It Home - Rounded Squares Design Variant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .variant-section {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+        }
+
+        .variant-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2C3E50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Fully Rounded (Original) Styles */
+        .btn-pill {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+
+        .btn-pill-primary {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.35);
+        }
+
+        .btn-pill-secondary {
+            background: linear-gradient(135deg, #4ECDC4, #44A3AA);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.35);
+        }
+
+        .btn-pill:active {
+            transform: scale(0.95);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        .input-pill {
+            width: 100%;
+            padding: 16px 24px;
+            border: 3px solid #4ECDC4;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            background: white;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        /* Rounded Square Variant Styles */
+        .btn-rounded-square {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+
+        .btn-rounded-square-primary {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.35);
+        }
+
+        .btn-rounded-square-secondary {
+            background: linear-gradient(135deg, #4ECDC4, #44A3AA);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.35);
+        }
+
+        .btn-rounded-square-glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            color: #2C3E50;
+            border: 2px solid rgba(78, 205, 196, 0.5);
+        }
+
+        .btn-rounded-square-emergency {
+            background: linear-gradient(135deg, #FFE66D, #FFA500);
+            color: #2C3E50;
+            padding: 18px 40px;
+            font-size: 18px;
+            animation: pulse 2s infinite;
+            box-shadow: 0 4px 15px rgba(255, 165, 0, 0.35);
+        }
+
+        .btn-rounded-square:active {
+            transform: scale(0.95);
+        }
+
+        @media (hover: hover) {
+            .btn-rounded-square:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+        }
+
+        .status-rounded-square {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(78, 205, 196, 0.1));
+            color: #0D9488;
+            border: 2px solid #4ECDC4;
+        }
+
+        .status-safe {
+            background: linear-gradient(135deg, rgba(85, 239, 196, 0.2), rgba(85, 239, 196, 0.1));
+            color: #0D9488;
+        }
+
+        .status-warning {
+            background: linear-gradient(135deg, #FFE66D, #FFA500);
+            color: #2C3E50;
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .status-alert {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 107, 107, 0.1));
+            color: #E55555;
+            border: 2px solid #FF6B6B;
+        }
+
+        .input-rounded-square {
+            width: 100%;
+            padding: 16px 20px;
+            border: 3px solid #4ECDC4;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            background: white;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-rounded-square:focus {
+            border-color: #FF6B6B;
+            transform: scale(1.02);
+            box-shadow: 0 0 0 5px rgba(255, 107, 107, 0.1);
+        }
+
+        .card {
+            background: white;
+            border: 1px solid rgba(78, 205, 196, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        @media (hover: hover) {
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+                border-color: rgba(78, 205, 196, 0.4);
+            }
+        }
+
+        .example-card {
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ECDC4;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 230, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
+        }
+
+        .comparison-note {
+            background: #F4F6F7;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .pros, .cons {
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .pros {
+            background: linear-gradient(135deg, rgba(85, 239, 196, 0.1), rgba(85, 239, 196, 0.05));
+            border: 1px solid #55EFC4;
+        }
+
+        .cons {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 107, 107, 0.05));
+            border: 1px solid #FFB3B3;
+        }
+
+        .pros h4 {
+            color: #0D9488;
+            margin-bottom: 10px;
+        }
+
+        .cons h4 {
+            color: #E55555;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 5px 0;
+            color: #5D6D7E;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Design Comparison: Pills vs Rounded Squares</h1>
+            <p>Comparing fully rounded (100px) vs rounded square (12px) border radius</p>
+        </div>
+
+        <div class="section">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #2C3E50;">Side-by-Side Comparison</h2>
+
+            <div class="comparison-grid">
+                <!-- Fully Rounded (Original) -->
+                <div class="variant-section">
+                    <div class="variant-title">
+                        <span>💊</span>
+                        Fully Rounded (Original)
+                    </div>
+
+                    <h4 style="color: #7F8C8D; margin: 20px 0 10px;">Buttons</h4>
+                    <div>
+                        <button class="btn-pill btn-pill-primary">Primary Button</button>
+                        <button class="btn-pill btn-pill-secondary">Secondary</button>
+                        <button class="btn-pill btn-pill-primary">
+                            <span>✅</span> I'm Safe
+                        </button>
+                    </div>
+
+                    <h4 style="color: #7F8C8D; margin: 20px 0 10px;">Status Badges</h4>
+                    <div>
+                        <span class="status-pill status-active">
+                            <span class="pulse-dot"></span>
+                            Check-in Active
+                        </span>
+                        <span class="status-pill status-safe">
+                            You're Safe ✅
+                        </span>
+                        <span class="status-pill status-warning">
+                            Time's Up! 🔔
+                        </span>
+                    </div>
+
+                    <h4 style="color: #7F8C8D; margin: 20px 0 10px;">Input Fields</h4>
+                    <input type="text" class="input-pill" placeholder="📍 Where are you going?">
+                    <input type="text" class="input-pill" placeholder="⏰ Return time">
+
+                    <h4 style="color: #7F8C8D; margin: 20px 0 10px;">Card Example</h4>
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 class="gradient-text">Active Check-in</h3>
+                            <span class="status-pill status-active" style="padding: 6px 16px; font-size: 12px;">
+                                <span class="pulse-dot" style="width: 6px; height: 6px;"></span>
+                                Active
+                            </span>
+                        </div>
+                        <p style="color: #7F8C8D; margin-bottom: 5px;">📍 Campus Library</p>
+                        <p style="font-size: 24px; font-weight: bold; color: #2C3E50;">2h 30m</p>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn-pill btn-pill-secondary" style="flex: 1; padding: 12px 20px; font-size: 14px;">
+                                Extend ⏰
+                            </button>
+                            <button class="btn-pill btn-pill-primary" style="flex: 1; padding: 12px 20px; font-size: 14px;">
+                                I'm Safe ✅
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rounded Square Variant -->
+                <div class="variant-section">
+                    <div class="variant-title">
+                        <span>⬜</span>
+                        Rounded Squares (12px radius)
+                    </div>
+
+                    <h4 style="color: #7F8C8D; margin: 20px 0 10px;">Buttons</h4>
+                    <div>
+                        <button class="btn-rounded-square btn-rounded-square-primary">Primary Button</button>
+                        <button class="btn-rounded-square btn-rounded-square-secondary">Secondary</button>
+                        <button class="btn-rounded-square btn-rounded-square-primary">
+                            <span>✅</span> I'm Safe
+                        </button>
+                    </div>
+
+                    <h4 style="color: #7F8C8D; margin: 20px 0 10px;">Status Badges</h4>
+                    <div>
+                        <span class="status-rounded-square status-active">
+                            <span class="pulse-dot"></span>
+                            Check-in Active
+                        </span>
+                        <span class="status-rounded-square status-safe">
+                            You're Safe ✅
+                        </span>
+                        <span class="status-rounded-square status-warning">
+                            Time's Up! 🔔
+                        </span>
+                    </div>
+
+                    <h4 style="color: #7F8C8D; margin: 20px 0 10px;">Input Fields</h4>
+                    <input type="text" class="input-rounded-square" placeholder="📍 Where are you going?">
+                    <input type="text" class="input-rounded-square" placeholder="⏰ Return time">
+
+                    <h4 style="color: #7F8C8D; margin: 20px 0 10px;">Card Example</h4>
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 class="gradient-text">Active Check-in</h3>
+                            <span class="status-rounded-square status-active" style="padding: 6px 14px; font-size: 12px;">
+                                <span class="pulse-dot" style="width: 6px; height: 6px;"></span>
+                                Active
+                            </span>
+                        </div>
+                        <p style="color: #7F8C8D; margin-bottom: 5px;">📍 Campus Library</p>
+                        <p style="font-size: 24px; font-weight: bold; color: #2C3E50;">2h 30m</p>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn-rounded-square btn-rounded-square-secondary" style="flex: 1; padding: 12px 20px; font-size: 14px;">
+                                Extend ⏰
+                            </button>
+                            <button class="btn-rounded-square btn-rounded-square-primary" style="flex: 1; padding: 12px 20px; font-size: 14px;">
+                                I'm Safe ✅
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- More Examples -->
+            <h3 style="text-align: center; margin: 40px 0 20px; color: #2C3E50;">Additional Variants</h3>
+
+            <div class="comparison-grid">
+                <div class="variant-section">
+                    <h4 style="color: #7F8C8D; margin-bottom: 15px;">Pills - Special Buttons</h4>
+                    <button class="btn-pill" style="background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; padding: 18px 40px; font-size: 18px; animation: pulse 2s infinite;">
+                        🚨 EMERGENCY SOS
+                    </button>
+                    <button class="btn-pill" style="background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px); color: #2C3E50; border: 2px solid rgba(78, 205, 196, 0.5);">
+                        Glass Effect
+                    </button>
+                    <button class="btn-pill" style="background: linear-gradient(135deg, #55EFC4, #00B894); color: white;">
+                        Success Action 🎉
+                    </button>
+                </div>
+
+                <div class="variant-section">
+                    <h4 style="color: #7F8C8D; margin-bottom: 15px;">Rounded Squares - Special Buttons</h4>
+                    <button class="btn-rounded-square btn-rounded-square-emergency">
+                        🚨 EMERGENCY SOS
+                    </button>
+                    <button class="btn-rounded-square btn-rounded-square-glass">
+                        Glass Effect
+                    </button>
+                    <button class="btn-rounded-square" style="background: linear-gradient(135deg, #55EFC4, #00B894); color: white;">
+                        Success Action 🎉
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div class="comparison-note">
+                <h3 style="color: #2C3E50; margin-bottom: 20px;">Design Analysis</h3>
+
+                <div class="pros-cons">
+                    <div>
+                        <div class="pros">
+                            <h4>✅ Fully Rounded (Pills)</h4>
+                            <ul>
+                                <li>• More playful and friendly</li>
+                                <li>• Softer, less intimidating</li>
+                                <li>• Better for single-line text</li>
+                                <li>• Trendy, modern feel</li>
+                                <li>• Great for tags/badges</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="pros">
+                            <h4>✅ Rounded Squares</h4>
+                            <ul>
+                                <li>• More professional look</li>
+                                <li>• Better text alignment</li>
+                                <li>• Easier to stack/grid</li>
+                                <li>• More space efficient</li>
+                                <li>• Better for icons</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: white; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h4 style="color: #2C3E50; margin-bottom: 15px;">🎯 Recommendation</h4>
+                    <p style="color: #7F8C8D; line-height: 1.8;">
+                        <strong>For a college safety app:</strong> The <strong>fully rounded (pill)</strong> design feels more approachable and less institutional, which is important for reducing anxiety in emergency situations. However, <strong>rounded squares</strong> provide better information hierarchy and professional trust.
+                    </p>
+                    <p style="color: #7F8C8D; line-height: 1.8; margin-top: 15px;">
+                        <strong>Hybrid approach:</strong> Use pills for primary actions and status badges (friendly), but rounded squares for cards and input fields (clarity).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Hybrid Example -->
+            <div style="background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(78, 205, 196, 0.05)); padding: 30px; border-radius: 20px; margin-top: 30px;">
+                <h3 style="text-align: center; color: #2C3E50; margin-bottom: 30px;">🎨 Hybrid Approach Example</h3>
+
+                <div class="card example-card" style="border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="gradient-text">Quick Check-in</h2>
+                        <span class="status-pill status-safe" style="padding: 6px 16px; font-size: 12px;">
+                            All Clear ✅
+                        </span>
+                    </div>
+
+                    <input type="text" class="input-rounded-square" placeholder="📍 Where are you going?" style="margin-bottom: 12px;">
+                    <input type="text" class="input-rounded-square" placeholder="⏰ Expected return time">
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn-pill btn-pill-secondary" style="flex: 1;">
+                            Save Draft
+                        </button>
+                        <button class="btn-pill btn-pill-primary" style="flex: 1;">
+                            Start Check-in 🚀
+                        </button>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn-pill" style="background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; padding: 16px 40px; font-size: 16px; animation: pulse 2s infinite;">
+                            🚨 Emergency? Tap Here
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

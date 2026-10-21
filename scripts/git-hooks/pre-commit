@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Pre-commit hook: run the SAME gate set as CI before a commit lands.
+# Non-zero exit aborts the commit. Bypass a known-broken tree with
+# `git commit --no-verify` (e.g. committing a WIP mid-refactor).
+#
+# This replaces the former Claude Stop hook (.claude/hooks/verify-before-stop.sh):
+# same `make verify` — the single source of truth shared with CI (root Makefile) —
+# just triggered at commit time instead of when the agent stops.
+#
+# Output discipline mirrors the old Stop hook: capture the full run to a log
+# and, on failure, surface only a BOUNDED summary (failed gates + a short tail)
+# so the terminal isn't flooded. Full log path is printed for drilling in.
+#
+# Tracked copy — `make hooks-installed` installs it into .git/hooks
+
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
+cd "$REPO_ROOT"
+
+LOG=$(mktemp "${TMPDIR:-/tmp}/mih-verify.XXXXXX.log")
+
+echo "pre-commit: running 'make verify' (same gates as CI); full log: $LOG" >&2
+if make verify >"$LOG" 2>&1; then
+    rm -f "$LOG"
+    exit 0
+fi
+
+# Failure: surface a bounded, high-signal summary instead of the whole log.
+{
+    echo "Verification FAILED — commit aborted. Bounded summary below; full log: $LOG"
+    echo "(bypass with 'git commit --no-verify' if this is an intentional WIP)"
+    echo "---- failed gates / tests (first 60) ----"
+    grep -E '^(FAILED|ERROR|make(\[[0-9]+\])?: \*\*\*|.*: error:|npm ERR!|Required test coverage|Test count:)' \
+        "$LOG" | head -n 60 || true
+    echo "---- last 60 lines of the run ----"
+    tail -n 60 "$LOG"
+    echo "---- (re-run a single failing test for its traceback; full log: $LOG) ----"
+} >&2
+exit 1

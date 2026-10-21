@@ -1,0 +1,24 @@
+<nav class="nav-bar">
+    <div class="nav-content">
+        <a href="/alerts" class="nav-logo">
+            <svg width="44" height="44" viewBox="0 0 1024 1024" fill="none">
+                <path d="M512 195 L175 450 L175 790 Q175 830 215 830 L809 830 Q849 830 849 790 L849 450 Z" fill="#14B8A6" stroke="#14B8A6" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="447,640 512,705 627,575" fill="none" stroke="white" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nav-logo-text">Made It Home</span>
+        </a>
+        <div class="nav-links">
+            <a href="/circles" class="nav-link {% if active_nav == 'circles' %}active{% endif %}">Circles</a>
+            <a href="/alerts" class="nav-link {% if active_nav == 'alerts' %}active{% endif %}">
+                Alerts
+                {% if unack_alerts_count is defined and unack_alerts_count > 0 %}
+                <span class="badge badge-emergency" style="margin-left: 4px;">{{ unack_alerts_count }}</span>
+                {% elif unack_count is defined and unack_count > 0 %}
+                <span class="badge badge-emergency" style="margin-left: 4px;">{{ unack_count }}</span>
+                {% endif %}
+            </a>
+            <a href="/account" class="nav-link {% if active_nav == 'account' %}active{% endif %}">Account</a>
+            <a href="/logout" class="nav-link">Sign Out</a>
+        </div>
+    </div>
+</nav>

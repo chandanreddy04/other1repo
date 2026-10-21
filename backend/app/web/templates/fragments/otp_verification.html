@@ -1,0 +1,90 @@
+<!-- OTP Verification Form Fragment -->
+<div id="auth-form" class="slide-up">
+    {% if success_message %}
+    <p class="text-muted mb-md">
+        {{ success_message }}
+        <a href="#"
+           hx-get="/htmx/auth/phone-form?allow_immediate=true&phone={{ phone_number|urlencode }}"
+           hx-target="#auth-form"
+           hx-swap="outerHTML"
+           style="color: var(--primary); text-decoration: none; margin-left: 0.5rem;">
+            change
+        </a>
+    </p>
+    {% endif %}
+
+    <form hx-post="/htmx/auth/verify-otp"
+          hx-target="#auth-form"
+          hx-swap="outerHTML">
+        <input type="hidden" name="phone_number" value="{{ phone_number }}">
+        <input type="hidden" name="next_url" value="{{ next_url|default('') }}">
+
+        <div class="form-group">
+            <label class="form-label">Enter your 6-digit code</label>
+            <input type="text"
+                   name="otp_code"
+                   class="form-input{% if error_message %} error{% endif %}"
+                   placeholder="000000"
+                   maxlength="6"
+                   pattern="[0-9]{6}"
+                   inputmode="numeric"
+                   autocomplete="one-time-code"
+                   autofocus
+                   required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+            Verify Code
+        </button>
+    </form>
+
+    {% if error_message %}
+    <p style="color: var(--danger); margin-top: 1rem; text-align: center;">{{ error_message }}</p>
+    {% endif %}
+
+    {% if show_resend %}
+    <div class="text-center mt-md" id="resend-container">
+        {% if resend_wait_seconds and resend_wait_seconds > 0 %}
+        <p class="text-muted" id="resend-timer">
+            Resend code in <span id="countdown">{{ resend_wait_seconds }}</span> seconds
+        </p>
+        <button id="resend-btn"
+                hx-post="/htmx/auth/request-otp"
+                hx-target="#auth-form"
+                hx-swap="outerHTML"
+                hx-vals='{{ {"phone_number": phone_number, "next_url": next_url or "", "is_resend": true}|tojson }}'
+                class="btn btn-sm btn-secondary"
+                disabled
+                style="display: none;">
+            Resend Code
+        </button>
+        <script>
+            let seconds = {{ resend_wait_seconds }};
+            const countdown = document.getElementById('countdown');
+            const resendBtn = document.getElementById('resend-btn');
+            const resendTimer = document.getElementById('resend-timer');
+
+            const timer = setInterval(() => {
+                seconds--;
+                if (seconds <= 0) {
+                    clearInterval(timer);
+                    resendTimer.style.display = 'none';
+                    resendBtn.style.display = 'inline-block';
+                    resendBtn.disabled = false;
+                } else {
+                    countdown.textContent = seconds;
+                }
+            }, 1000);
+        </script>
+        {% else %}
+        <button hx-post="/htmx/auth/request-otp"
+                hx-target="#auth-form"
+                hx-swap="outerHTML"
+                hx-vals='{{ {"phone_number": phone_number, "next_url": next_url or "", "is_resend": true}|tojson }}'
+                class="btn btn-sm btn-secondary">
+            Resend Code
+        </button>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

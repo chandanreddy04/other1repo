@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="224" fill="#14B8A6"/>
+
+  <!-- Home outline — no door -->
+  <path
+    d="M512 195 L175 450 L175 790 Q175 830 215 830 L809 830 Q849 830 849 790 L849 450 Z"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="42"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Checkmark centered in house body -->
+  <polyline
+    points="447,640 512,705 627,575"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="42"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

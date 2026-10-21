@@ -1,0 +1,79 @@
+# Core dependencies
+fastapi==0.136.3
+uvicorn[standard]==0.32.1
+# JWT auth via PyJWT — migrated off python-jose (unfixable PYSEC-2025-185)
+PyJWT==2.13.0
+# Pinned forward for security (pip-audit): <0.0.30 had CVE-2026-53538/53539,
+# 0.0.30 still had CVE-2026-53540.
+python-multipart==0.0.31
+# Pinned forward for security (pip-audit): fastapi 0.136.3 pulls starlette 1.1.0
+# (which had CVE-2026-54282/54283); fastapi allows starlette>=0.46.0.
+# idna pinned explicitly as the transitive <3.15 was vulnerable.
+starlette==1.3.1
+idna==3.16
+pydantic==2.13.3
+pydantic-settings==2.6.1
+
+# Database
+sqlalchemy==2.0.36
+alembic==1.14.0
+asyncpg==0.30.0
+greenlet==3.2.4
+psycopg2-binary==2.9.10
+
+# Cloud SDK — AWS (S3 for photo storage, SNS for SMS failover). The active
+# backend per subsystem is picked by env var (STORAGE_BACKEND / SMS_FAILOVER_PROVIDER).
+boto3==1.35.93
+
+# SMS
+twilio==9.3.8
+
+# Payments
+stripe==11.4.1
+
+# Monitoring
+bugsnag==4.8.0
+
+# Rate Limiting
+slowapi==0.1.9
+
+# Image processing
+Pillow==12.3.0
+
+# Templating
+Jinja2==3.1.6
+
+# Transitive security forward-pins (pip-audit --strict). These are pulled in by
+# other deps at vulnerable versions; pin them forward to the fixed releases.
+#   aiohttp      <3.14.3  PYSEC-2026-3545/3546/3547 (twilio transitive)
+#   cryptography <50.0.0  PYSEC-2026-3552/3553/3554 (twilio/boto transitive)
+#   msgpack      <1.2.1   GHSA-6v7p-g79w-8964 (pip-audit -> CacheControl transitive)
+#   WebOb        <1.8.11  CVE-2026-44889, GHSA-6hx8-3wjj-gr8g (bugsnag)
+#   pyasn1       <0.6.4   PYSEC-2026-3455/3456/3457 (google-auth transitive)
+#   pip          <26.2    PYSEC-2026-3721 (the installer itself is audited)
+aiohttp==3.14.3
+cryptography==50.0.0
+msgpack==1.2.1
+WebOb==1.8.11
+pyasn1==0.6.4
+pip==26.2.1
+
+# Utils
+python-dotenv==1.2.2
+httpx==0.28.1
+email-validator==2.2.0
+phonenumbers==8.13.51
+
+# Development
+pytest==9.0.3
+pytest-asyncio==1.3.0
+pytest-cov==6.0.0
+aiosqlite==0.20.0
+python-dateutil==2.9.0.post0  # used by tests (dateutil.parser.isoparse)
+moto[s3,sns]==5.0.28  # mocks AWS APIs for backend tests (S3 + SNS)
+black==26.5.1
+isort==5.13.2
+mypy==1.13.0
+ruff==0.15.6
+flake8==7.1.1
+pip-audit==2.9.0  # security gate (make backend-audit / CI); --strict in Makefile

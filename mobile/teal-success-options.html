@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teal Palette - Success Color Options</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f7;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, #14B8A6, #0D9488);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .option-card.recommended {
+            border: 2px solid #14B8A6;
+            position: relative;
+        }
+
+        .option-card.recommended::before {
+            content: '⭐ RECOMMENDED';
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #14B8A6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .option-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2C3E50;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .color-chip {
+            flex: 1;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+            margin: 5px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mini-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            margin-top: 15px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 13px;
+            margin: 5px;
+        }
+
+        /* Base Teal Colors */
+        .teal-primary { background: linear-gradient(135deg, #14B8A6, #0D9488); }
+        .teal-secondary { background: linear-gradient(135deg, #A78BFA, #8B5CF6); }
+        .teal-danger { background: linear-gradient(135deg, #FFE66D, #FFA500); color: #2C3E50; }
+
+        /* Success Options */
+        .success-mint { background: linear-gradient(135deg, #10B981, #059669); }
+        .success-indigo { background: linear-gradient(135deg, #6366F1, #4F46E5); }
+        .success-coral { background: linear-gradient(135deg, #FB923C, #F97316); }
+        .success-violet { background: linear-gradient(135deg, #A855F7, #9333EA); }
+        .success-emerald { background: linear-gradient(135deg, #10B981, #047857); }
+        .success-sky { background: linear-gradient(135deg, #38BDF8, #0EA5E9); }
+        .success-rose { background: linear-gradient(135deg, #FB7185, #F43F5E); }
+        .success-blue { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+
+        .comparison-note {
+            background: #F0FDF4;
+            border: 1px solid #86EFAC;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #166534;
+        }
+
+        .final-preview {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 230, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 230, 109, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Teal Palette - Success Button Options</h1>
+            <p style="color: #7F8C8D;">Finding the perfect "I'm Safe" button color</p>
+        </div>
+
+        <div class="options-grid">
+            <!-- Mint Green -->
+            <div class="option-card">
+                <div class="option-title">🌿 Mint Green</div>
+                <div class="color-palette">
+                    <div class="color-chip teal-primary">Primary</div>
+                    <div class="color-chip teal-secondary">Secondary</div>
+                    <div class="color-chip success-mint">Success</div>
+                    <div class="color-chip teal-danger">Emergency</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn teal-primary">Check In 📍</button>
+                    <button class="btn success-mint">I'm Safe ✅</button>
+                </div>
+                <div class="comparison-note">
+                    ⚠️ May be too similar to teal primary
+                </div>
+            </div>
+
+            <!-- Indigo -->
+            <div class="option-card recommended">
+                <div class="option-title">💙 Indigo</div>
+                <div class="color-palette">
+                    <div class="color-chip teal-primary">Primary</div>
+                    <div class="color-chip teal-secondary">Secondary</div>
+                    <div class="color-chip success-indigo">Success</div>
+                    <div class="color-chip teal-danger">Emergency</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn teal-primary">Check In 📍</button>
+                    <button class="btn success-indigo">I'm Safe ✅</button>
+                </div>
+                <div class="comparison-note">
+                    ✅ Great contrast, professional, trustworthy
+                </div>
+            </div>
+
+            <!-- Coral/Peach -->
+            <div class="option-card">
+                <div class="option-title">🍑 Coral/Peach</div>
+                <div class="color-palette">
+                    <div class="color-chip teal-primary">Primary</div>
+                    <div class="color-chip teal-secondary">Secondary</div>
+                    <div class="color-chip success-coral">Success</div>
+                    <div class="color-chip teal-danger">Emergency</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn teal-primary">Check In 📍</button>
+                    <button class="btn success-coral">I'm Safe ✅</button>
+                </div>
+                <div class="comparison-note">
+                    ⚠️ Warm & friendly but maybe too close to emergency yellow
+                </div>
+            </div>
+
+            <!-- Violet -->
+            <div class="option-card recommended">
+                <div class="option-title">💜 Violet</div>
+                <div class="color-palette">
+                    <div class="color-chip teal-primary">Primary</div>
+                    <div class="color-chip teal-secondary">Secondary</div>
+                    <div class="color-chip success-violet">Success</div>
+                    <div class="color-chip teal-danger">Emergency</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn teal-primary">Check In 📍</button>
+                    <button class="btn success-violet">I'm Safe ✅</button>
+                </div>
+                <div class="comparison-note">
+                    ✅ Playful, distinct, good contrast
+                </div>
+            </div>
+
+            <!-- Emerald -->
+            <div class="option-card">
+                <div class="option-title">💎 Emerald</div>
+                <div class="color-palette">
+                    <div class="color-chip teal-primary">Primary</div>
+                    <div class="color-chip teal-secondary">Secondary</div>
+                    <div class="color-chip success-emerald">Success</div>
+                    <div class="color-chip teal-danger">Emergency</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn teal-primary">Check In 📍</button>
+                    <button class="btn success-emerald">I'm Safe ✅</button>
+                </div>
+                <div class="comparison-note">
+                    ✅ Universal "safe" signal, clear meaning
+                </div>
+            </div>
+
+            <!-- Sky Blue -->
+            <div class="option-card">
+                <div class="option-title">☁️ Sky Blue</div>
+                <div class="color-palette">
+                    <div class="color-chip teal-primary">Primary</div>
+                    <div class="color-chip teal-secondary">Secondary</div>
+                    <div class="color-chip success-sky">Success</div>
+                    <div class="color-chip teal-danger">Emergency</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn teal-primary">Check In 📍</button>
+                    <button class="btn success-sky">I'm Safe ✅</button>
+                </div>
+                <div class="comparison-note">
+                    ⚠️ Light & friendly but might lack emphasis
+                </div>
+            </div>
+
+            <!-- Rose -->
+            <div class="option-card">
+                <div class="option-title">🌹 Rose</div>
+                <div class="color-palette">
+                    <div class="color-chip teal-primary">Primary</div>
+                    <div class="color-chip teal-secondary">Secondary</div>
+                    <div class="color-chip success-rose">Success</div>
+                    <div class="color-chip teal-danger">Emergency</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn teal-primary">Check In 📍</button>
+                    <button class="btn success-rose">I'm Safe ✅</button>
+                </div>
+                <div class="comparison-note">
+                    ⚠️ Positive but might read as "danger" to some
+                </div>
+            </div>
+
+            <!-- Current Blue (for reference) -->
+            <div class="option-card">
+                <div class="option-title">🔷 Current Blue</div>
+                <div class="color-palette">
+                    <div class="color-chip teal-primary">Primary</div>
+                    <div class="color-chip teal-secondary">Secondary</div>
+                    <div class="color-chip success-blue">Success</div>
+                    <div class="color-chip teal-danger">Emergency</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn teal-primary">Check In 📍</button>
+                    <button class="btn success-blue">I'm Safe ✅</button>
+                </div>
+                <div class="comparison-note">
+                    Current option - good but could be more distinct
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Comparison -->
+        <div class="final-preview">
+            <h2 style="text-align: center; color: #2C3E50; margin-bottom: 30px;">Top 3 Recommendations Side-by-Side</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <!-- Indigo -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; text-align: center;">
+                    <h3 style="color: #2C3E50; margin-bottom: 15px;">Indigo (Best Contrast)</h3>
+                    <button class="btn teal-primary" style="width: 100%; margin-bottom: 10px;">Check In 📍</button>
+                    <button class="btn teal-secondary" style="width: 100%; margin-bottom: 10px;">View Friends</button>
+                    <button class="btn success-indigo" style="width: 100%; margin-bottom: 10px;">I'm Safe ✅</button>
+                    <button class="btn teal-danger" style="width: 100%; animation: pulse 2s infinite;">🚨 Emergency</button>
+                </div>
+
+                <!-- Violet -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; text-align: center;">
+                    <h3 style="color: #2C3E50; margin-bottom: 15px;">Violet (Most Playful)</h3>
+                    <button class="btn teal-primary" style="width: 100%; margin-bottom: 10px;">Check In 📍</button>
+                    <button class="btn teal-secondary" style="width: 100%; margin-bottom: 10px;">View Friends</button>
+                    <button class="btn success-violet" style="width: 100%; margin-bottom: 10px;">I'm Safe ✅</button>
+                    <button class="btn teal-danger" style="width: 100%; animation: pulse 2s infinite;">🚨 Emergency</button>
+                </div>
+
+                <!-- Emerald -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; text-align: center;">
+                    <h3 style="color: #2C3E50; margin-bottom: 15px;">Emerald (Clearest Meaning)</h3>
+                    <button class="btn teal-primary" style="width: 100%; margin-bottom: 10px;">Check In 📍</button>
+                    <button class="btn teal-secondary" style="width: 100%; margin-bottom: 10px;">View Friends</button>
+                    <button class="btn success-emerald" style="width: 100%; margin-bottom: 10px;">I'm Safe ✅</button>
+                    <button class="btn teal-danger" style="width: 100%; animation: pulse 2s infinite;">🚨 Emergency</button>
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05)); padding: 20px; border-radius: 12px; margin-top: 30px;">
+                <h3 style="color: #0D9488; margin-bottom: 10px;">💡 My Recommendation</h3>
+                <p style="color: #5D6D7E; line-height: 1.8;">
+                    <strong>Indigo</strong> provides the best visual hierarchy - it's distinct from all other colors while maintaining a trustworthy, professional feel.
+                    <strong>Violet</strong> is great if you want more playfulness.
+                    <strong>Emerald</strong> works if you want the universal "green = safe" association.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
