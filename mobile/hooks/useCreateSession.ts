@@ -143,13 +143,14 @@ export function useCreateSession() {
   // Direct clock entry (tap the time → OS rotary picker). Alarm-app
   // semantics: the picked hh:mm means its NEXT occurrence — today if still
   // ahead, otherwise tomorrow — which is always within the 24h session cap.
+  // Only a time already passed rolls to tomorrow. A time inside the minimum
+  // lead is rejected by validateForm, never moved.
   const handleTimePicked = (picked: Date) => {
     setExpectedReturnTime(
       nextOccurrenceOfTime(
         picked.getHours(),
         picked.getMinutes(),
-        new Date(),
-        CHECKIN_CONFIG.MIN_SESSION_LEAD_MINUTES
+        new Date()
       )
     )
     setErrors(prev => {

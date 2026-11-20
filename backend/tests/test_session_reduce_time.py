@@ -62,10 +62,10 @@ class TestReduceSessionTime:
     async def test_reduce_past_now_rejected(
         self, client: AsyncClient, db_session: AsyncSession
     ):
-        # 30 min left; cutting 60 would land in the past — and any result
-        # under the 30-minute floor (owner decision 2026-07-19) is rejected.
+        # 5 min left; cutting 60 would land in the past — and any result
+        # under the 5-minute floor (owner decision 2026-11-19) is rejected.
         user = await create_test_user(db_session, phone_number="+14155562002")
-        session = await _active_session(db_session, user, minutes_ahead=30)
+        session = await _active_session(db_session, user, minutes_ahead=5)
         original = session.expected_return_time
 
         r = await client.put(
@@ -74,7 +74,7 @@ class TestReduceSessionTime:
             json={"minutes_to_extend": -60},
         )
         assert r.status_code == 400
-        assert "30 minutes" in r.json()["detail"]
+        assert "5 minutes" in r.json()["detail"]
 
         refetched = await client.get(
             f"/api/v1/sessions/{session.id}", headers=_auth(user)
@@ -84,7 +84,7 @@ class TestReduceSessionTime:
     async def test_reduce_leaving_at_least_the_floor_ok(
         self, client: AsyncClient, db_session: AsyncSession
     ):
-        # 100 min left; cutting 60 leaves 40 — above the 30-minute floor.
+        # 100 min left; cutting 60 leaves 40 — above the 5-minute floor.
         user = await create_test_user(db_session, phone_number="+14155562003")
         session = await _active_session(db_session, user, minutes_ahead=100)
 
@@ -98,9 +98,9 @@ class TestReduceSessionTime:
     async def test_reduce_below_the_floor_rejected(
         self, client: AsyncClient, db_session: AsyncSession
     ):
-        # 50 min left; cutting 30 would leave 20 — under the floor → 400.
+        # 33 min left; cutting 30 would leave 3 — under the floor → 400.
         user = await create_test_user(db_session, phone_number="+14155562005")
-        session = await _active_session(db_session, user, minutes_ahead=50)
+        session = await _active_session(db_session, user, minutes_ahead=33)
 
         r = await client.put(
             f"/api/v1/sessions/{session.id}/extend",
@@ -108,7 +108,7 @@ class TestReduceSessionTime:
             json={"minutes_to_extend": -30},
         )
         assert r.status_code == 400
-        assert "30 minutes" in r.json()["detail"]
+        assert "5 minutes" in r.json()["detail"]
 
     async def test_extend_still_works(
         self, client: AsyncClient, db_session: AsyncSession

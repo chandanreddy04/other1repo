@@ -185,11 +185,11 @@ class Settings(BaseSettings):
     SESSION_DATA_RETENTION_DAYS: int = 7
     RETENTION_EXTENSION_DAYS: int = 7
 
-    # Minimum session length (owner decision 2026-07-19): a check-in
+    # Minimum session length (owner decision 2026-11-19): a check-in
     # deadline can never be SET closer than this to now — at creation or by
     # reduction. Mirrored by mobile CHECKIN_CONFIG.MIN_SESSION_LEAD_MINUTES
     # (keep in sync). SOS is exempt (its deadline IS now by design).
-    MIN_SESSION_LEAD_MINUTES: int = 30
+    MIN_SESSION_LEAD_MINUTES: int = 5
 
     # Never-resolved incidents (owner decisions 2026-07-19): after this many
     # days stuck past the deadline in MISSED/ALERTED, the public alert page
