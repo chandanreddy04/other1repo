@@ -129,12 +129,12 @@ export const CHECKIN_CONFIG = {
   // "your circle will be alerted in ~N min" countdown on the session screen.
   ALERT_GRACE_MINUTES: 5,
 
-  // Minimum session length (owner decision 2026-07-19): the deadline can
+  // Minimum session length (owner decision 2026-11-19): the deadline can
   // never be SET closer than this to now — on any surface (create form,
   // rotary picker, ±30m adjusters, draft restore). MUST mirror the backend
   // MIN_SESSION_LEAD_MINUTES (app/core/config.py), which enforces the same
   // floor on create and extend/reduce.
-  MIN_SESSION_LEAD_MINUTES: 30,
+  MIN_SESSION_LEAD_MINUTES: 5,
 
   // How long post-session data (photos, location trail) is kept. MUST mirror
   // the backend SESSION_DATA_RETENTION_DAYS (app/core/config.py) — retention

@@ -302,10 +302,10 @@ class TestCreateSession:
         self, client: AsyncClient, db_session: AsyncSession
     ):
         """Return time must be at least the minimum lead from now
-        (owner decision 2026-07-19: never < 30 minutes)."""
+        (owner decision 2026-11-19: never < 5 minutes)."""
         user = await _create_user(db_session, phone_number="+14155560302")
 
-        for offset in (-timedelta(hours=1), timedelta(minutes=10)):
+        for offset in (-timedelta(hours=1), timedelta(minutes=2)):
             session_data = {
                 "expected_return_time": (datetime.now(UTC) + offset).isoformat(),
                 "destination": "Too Soon Trip",
@@ -314,7 +314,7 @@ class TestCreateSession:
                 "/api/v1/sessions", headers=_auth(user), json=session_data
             )
             assert response.status_code == 400
-            assert "30 minutes" in response.json()["detail"]
+            assert "5 minutes" in response.json()["detail"]
 
     async def test_create_session_already_active(
         self, client: AsyncClient, db_session: AsyncSession
