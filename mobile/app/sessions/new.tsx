@@ -183,7 +183,7 @@ export default function NewSessionScreen() {
                 <DateTimePicker
                   value={expectedReturnTime}
                   mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  display="spinner"
                   onChange={(event, picked) => {
                     // Android's dialog closes itself — mirror that in state.
                     if (Platform.OS === 'android') setShowTimePicker(false)
